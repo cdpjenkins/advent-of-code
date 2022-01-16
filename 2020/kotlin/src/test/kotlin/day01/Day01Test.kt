@@ -4,7 +4,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import utils.readLines
 
-class Day01KtTest : FunSpec({
+class Day01Kt : FunSpec({
     test("day 1 part 1 with test input") {
         productOfTwoValuesThatSumTo2020(testInput) shouldBe 514579
     }

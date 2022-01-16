@@ -3,6 +3,7 @@ package day04
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import utils.readLines
+import utils.splitList
 
 class Day04Test : FunSpec({
     test("day 4 part 1 with test data") {
@@ -89,15 +90,6 @@ private fun String.parseField(): Pair<String, String> {
     val (name, value) = fieldRegex.find(this)!!.destructured
     return name to value
 }
-
-private fun <E> List<E>.splitList(
-    accumulator: List<List<E>> = emptyList(),
-    predicate: (E) -> Boolean
-): List<List<E>> =
-    if (this.isEmpty()) accumulator
-    else this.dropWhile { !predicate(it) }
-        .dropWhile(predicate)
-        .splitList(accumulator + listOf(takeWhile { !predicate(it) }), predicate)
 
 val fieldRegex = "([a-z]{3}):([#0-9a-z]+)".toRegex()
 val heightRegex = "([0-9]{2,3})(cm|in)".toRegex()

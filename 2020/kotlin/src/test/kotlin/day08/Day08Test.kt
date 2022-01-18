@@ -13,26 +13,53 @@ class Day08Test : FunSpec({
     test("day 8 part 1 using real input") {
         lastAccBeforeLoop(realInput) shouldBe 1487
     }
+
+    test("day 8 part 2 using test data") {
+        findFinalAccAfterFixing(Interpreter.of(testInput)) shouldBe 8
+    }
+
+    test("day 8 part 2 using real data") {
+        findFinalAccAfterFixing(Interpreter.of(realInput)) shouldBe 1607
+    }
 })
 
-private fun lastAccBeforeLoop(input: List<String>): Int =
+private fun findFinalAccAfterFixing(interpreter: Interpreter) =
+    (0..interpreter.instructions.size - 1)
+        .map { i -> interpreter.runWithFlippedInstructionAt(i) }
+        .find { it.terminated() }!!
+        .registerFile
+        .acc
+
+private fun lastAccBeforeLoop(input: List<String>) =
     generateSequence(Interpreter.of(input)) { it.run() }
-        .takeWhile { it.registerFile.pc !in it.visitedInstructions }
+        .takeWhile { !it.looping() }
         .last()
         .registerFile
         .acc
 
-data class Interpreter(
+class Interpreter(
     val instructions: List<Instruction>,
     val registerFile: RegisterFile = RegisterFile(0, 0),
     val visitedInstructions: Set<Int> = emptySet()
 ) {
-    fun run(): Interpreter {
-        return Interpreter(
+    fun run() =
+        Interpreter(
             instructions,
             instructions[registerFile.pc].execute(registerFile),
             visitedInstructions + registerFile.pc
         )
+
+    fun terminated() = registerFile.pc >= instructions.count()
+    fun looping() = registerFile.pc in visitedInstructions
+
+    fun runWithFlippedInstructionAt(i: Int) =
+        generateSequence(flipInstructionAt(i)) { it.run() }
+            .find { it.looping() || it.terminated() }!!
+
+    fun flipInstructionAt(i: Int): Interpreter {
+        val mutatedInstructions = instructions.toMutableList()
+        mutatedInstructions[i] = mutatedInstructions[i].flip()
+        return Interpreter(mutatedInstructions)
     }
 
     companion object {
@@ -43,7 +70,7 @@ data class Interpreter(
     }
 }
 
-data class RegisterFile(
+class RegisterFile(
     val acc: Int,
     val pc: Int
 ) {
@@ -52,7 +79,7 @@ data class RegisterFile(
     fun jmp(value: Int) = RegisterFile(acc, pc + value)
 }
 
-data class Instruction(
+class Instruction(
     val i: Int,
     val operation: String,
     val value: Int
@@ -64,8 +91,16 @@ data class Instruction(
             "jmp" -> registerFile.jmp(value)
             else -> throw AssertionError()
         }
-}
 
+    fun flip(): Instruction {
+        val flippedOperation = when (operation) {
+            "nop" -> "jmp"
+            "jmp" -> "nop"
+            else -> operation
+        }
+        return Instruction(i, flippedOperation, value)
+    }
+}
 
 private fun String.parseInstruction(i: Int): Instruction {
     val (operation, sign, value) = regex.find(this)!!.destructured

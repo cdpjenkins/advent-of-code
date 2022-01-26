@@ -2,7 +2,7 @@ package day16
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 
 class Day16Test : FunSpec({
     test("day 16 part 1 with test input") {
@@ -181,4 +181,4 @@ val testInput = """
             38,6,12
         """.trimIndent().lines()
 
-val realInput = readLines("day16")
+val realInput = realInput("day16")

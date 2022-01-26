@@ -2,7 +2,7 @@ package day05
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 
 class Day05Test : FunSpec({
     test("day 5 part 1 with real data") {
@@ -37,4 +37,4 @@ private fun String.seatId() =
         .replace('F', '0')
         .toInt(2)
 
-val realInput = readLines("day05")
+val realInput = realInput("day05")

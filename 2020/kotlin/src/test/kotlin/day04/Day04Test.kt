@@ -2,7 +2,7 @@ package day04
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 import utils.splitList
 
 class Day04Test : FunSpec({
@@ -121,7 +121,7 @@ val testInput =
         iyr:2011 ecl:brn hgt:59in
     """.trimIndent().lines()
 
-val realInput = readLines("Day04")
+val realInput = realInput("Day04")
 
 val testInputInvalidPassports = """
             eyr:1972 cid:100

@@ -2,7 +2,7 @@ package day03
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 
 class Day03Test : FunSpec({
     test("day 3 part 1 with test input") {
@@ -57,7 +57,7 @@ private val possibleSlopes =
         Vector2D(1, 2)
     )
 
-val realInput = readLines("Day03")
+val realInput = realInput("Day03")
 
 val testInput = """
             ..##.......

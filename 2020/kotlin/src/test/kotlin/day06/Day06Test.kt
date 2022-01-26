@@ -2,7 +2,7 @@ package day06
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 import utils.splitList
 
 class Day06Test : FunSpec({
@@ -36,4 +36,4 @@ private fun List<String>.questionsThatEveroneAnswered(): Set<Char> {
 
 private fun <E> List<E>.parseGroup() = joinToString("").toSet()
 
-val realInput = readLines("day06")
+val realInput = realInput("day06")

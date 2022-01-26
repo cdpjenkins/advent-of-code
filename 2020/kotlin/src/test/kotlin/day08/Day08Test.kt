@@ -2,7 +2,7 @@ package day08
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 import java.lang.AssertionError
 
 class Day08Test : FunSpec({
@@ -124,4 +124,4 @@ val testInput = """
             acc +6
         """.trimIndent().lines()
 
-val realInput = readLines("day08")
+val realInput = realInput("day08")

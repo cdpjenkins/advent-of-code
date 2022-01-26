@@ -2,20 +2,20 @@ package day18
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 import java.lang.AssertionError
 
 class Day18Test : FunSpec({
 
     test("part 1 with real data: operators have equal precedence") {
-        val result = readLines("day18")
+        val result = realInput("day18")
             .map { evaluateWhereOperatorsHaveEqualPrecedence(it) }
             .sum()
         result shouldBe 53660285675207L
     }
 
     test("part 2 with real data: plus has greater precedence than multiply") {
-        val result = readLines("day18")
+        val result = realInput("day18")
             .map { evaluateWherePlusHasGreaterPrecedenceThanMultiply(it) }
             .sum()
         result shouldBe 141993988282687L

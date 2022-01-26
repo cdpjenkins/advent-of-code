@@ -2,7 +2,7 @@ package day17
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 
 class Day17Test :FunSpec({
     test("day 17 part 1 with test data") {
@@ -10,7 +10,7 @@ class Day17Test :FunSpec({
     }
 
     test("day 17 part 1 with real data") {
-        val realInput = readLines("day17")
+        val realInput = realInput("day17")
         numAliveAfter6Steps(realInput) shouldBe 207
     }
 
@@ -19,7 +19,7 @@ class Day17Test :FunSpec({
     }
 
     test("day 17 part 2 with real data") {
-        val realInput = readLines("day17")
+        val realInput = realInput("day17")
         numAliveAfter6Steps4D(realInput) shouldBe 2308
     }
 

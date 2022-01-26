@@ -2,7 +2,7 @@ package day01
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import utils.readLines
+import utils.realInput
 
 class Day01Kt : FunSpec({
     test("day 1 part 1 with test input") {
@@ -51,7 +51,7 @@ private fun asLongs(input: List<String>) =
         .asSequence()
 
 
-val realInput = readLines("day01")
+val realInput = realInput("day01")
 val testInput = """
             1721
             979

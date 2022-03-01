@@ -1,7 +1,6 @@
 package day04
 
 import readInput
-import java.lang.AssertionError
 
 fun main() {
     val input = readInput("Day04")
@@ -76,9 +75,7 @@ fun makeBoard(input: List<String>): Board {
             }
             .toMap()
 
-    val board = Board(squares)
-
-    return board
+    return Board(squares)
 }
 
 data class Location(val col: Int, val row: Int)
@@ -90,13 +87,10 @@ data class Board(val squares: Map<Location, Int>, val marks: Set<Location> = emp
         return Board(squares, marks + newMarks)
     }
 
-    fun isWon(): Boolean {
-        val thingie = (rows() + cols()).filter { it ->
-            it.all { ston: Location -> marks.contains(ston) }
+    fun isWon(): Boolean =
+        (rows() + cols()).any { rowOrColumn ->
+            rowOrColumn.all { location -> location.isMarked() }
         }
-
-        return !thingie.isEmpty()
-    }
 
     fun calculateScore(): Int {
         val allLocations = (0..4).flatMap { y ->
@@ -105,13 +99,15 @@ data class Board(val squares: Map<Location, Int>, val marks: Set<Location> = emp
             }
         }
 
-        val unmarkedLocations = allLocations.filter { !marks.contains(it) }
+        val unmarkedLocations = allLocations.filter { !it.isMarked() }
 
         println("unmarked locations " + unmarkedLocations)
 
         val score = unmarkedLocations.map { squares[it]!! }.sum()
         return score
     }
+
+    private fun Location.isMarked() = marks.contains(this)
 }
 
 fun rows(): List<List<Location>> {

@@ -11,9 +11,9 @@ fun main() {
 fun countDepthIncreasesFromStrings(input: List<String>): Int = countDepthIncreases(input.map { it.toInt() })
 
 private fun countDepthIncreases(measurements: List<Int>): Int =
-        measurements.zip(measurements.drop(1))
-                .filter { it.second > it.first }
-                .count()
+    measurements.zip(measurements.drop(1))
+        .filter { it.second > it.first }
+        .count()
 
 // I wish there was a ternary zip function in the Kotlina stdlib
 fun slidingWindows(input: List<String>): Int {

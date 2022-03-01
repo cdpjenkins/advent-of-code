@@ -18,9 +18,7 @@ fun transpile(input: List<String>) {
     )
 
     val kotlinInstructions = input.withIndex().map { (i, instruction) ->
-        val (operation, operand1, _, operand2) = regex.find(instruction)?.destructured ?: throw AssertionError(
-            instruction
-        )
+        val (operation, operand1, _, operand2) = regex.find(instruction)?.destructured ?: throw AssertionError(instruction)
         val v1 = "${operand1}${i}"
         val v2 = if (!operand2.isEmpty()) {
             if (operand2[0].isDigit() || operand2[0] == '-') {

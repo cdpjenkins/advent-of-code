@@ -2,7 +2,7 @@ package day02
 
 import FileUtil.readInputFileToList
 import day02.Move.*
-import day02.Result.*
+import day02.Outcome.*
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -34,47 +34,28 @@ private fun part1Score(input: List<String>) = input.map { makeRoundForPart1(it) 
 private fun part2Score(input: List<String>) = input.map { makeRoundForPart2(it) }.sumOf { it.score() }
 
 private fun makeRoundForPart1(inputLine: String): Round {
-    val (opponentMove, yourMove) = inputLine.split(" ")
+    val (opponentMoveString, yourMoveString) = inputLine.split(" ")
 
-    return Round(Move.fromABC(opponentMove), Move.fromXYZ(yourMove))
+    val opponentMove1 = Move.fromABC(opponentMoveString)
+    val yourMove = Move.fromXYZ(yourMoveString)
+
+    return Round(opponentMove1, yourMove)
 }
 
 private fun makeRoundForPart2(inputLine: String): Round {
     val (opponentMoveString, desiredOutcomeString) = inputLine.split(" ")
 
     val opponentMove = Move.fromABC(opponentMoveString)
-    val desiredOutcome = Result.fromXYZ(desiredOutcomeString)
+    val desiredOutcome = Outcome.fromXYZ(desiredOutcomeString)
 
-    val yourMove = when (opponentMove) {
-        ROCK -> when (desiredOutcome) {
-            LOSE -> SCISSORS
-            DRAW -> ROCK
-            WIN -> PAPER
-        }
-
-        PAPER -> when (desiredOutcome) {
-            LOSE -> ROCK
-            DRAW -> PAPER
-            WIN -> SCISSORS
-        }
-
-        SCISSORS -> when (desiredOutcome) {
-            LOSE -> PAPER
-            DRAW -> SCISSORS
-            WIN -> ROCK
-        }
-    }
-
-    return Round(opponentMove, yourMove)
+    return Round.allPossibleRounds().find { it.opponentMove == opponentMove && it.outcome == desiredOutcome }!!
 }
 
 data class Round(val opponentMove: Move, val yourMove: Move) {
-    fun score(): Int {
-        return yourMove.moveScore() + resultForContest(yourMove, opponentMove).score
-    }
+    fun score(): Int = yourMove.moveScore + outcome.score
 
-    private fun resultForContest(yourMove: Move, opponentMove: Move): Result {
-        return when (yourMove) {
+    val outcome: Outcome =
+        when (yourMove) {
             ROCK -> when (opponentMove) {
                 ROCK -> DRAW
                 PAPER -> LOSE
@@ -91,9 +72,16 @@ data class Round(val opponentMove: Move, val yourMove: Move) {
                 SCISSORS -> DRAW
             }
         }
+
+    companion object {
+        fun allPossibleRounds() =
+            Move.values().flatMap {yourMove ->
+                Move.values().map {opponentMove ->
+                    Round(opponentMove, yourMove)
+                }
+            }
     }
 }
-
 
 private fun getRealInput() = readInputFileToList("day02.txt")
 
@@ -103,9 +91,7 @@ val testInput = """
             C Z
         """.trimIndent().lines()
 
-
-// TODO enum class innit
-enum class Move(private val value: Int) {
+enum class Move(value: Int) {
     ROCK(0),
     PAPER(1),
     SCISSORS(2);
@@ -113,7 +99,7 @@ enum class Move(private val value: Int) {
     val abcValue = (value + 'A'.code).toChar().toString()
     val xyzValue = (value + 'X'.code).toChar().toString()
 
-    fun moveScore() = value + 1
+    val moveScore = value + 1
 
     companion object {
         fun fromABC(moveString: String) = Move.values().first { it.abcValue == moveString }
@@ -121,12 +107,12 @@ enum class Move(private val value: Int) {
     }
 }
 
-enum class Result(val score: Int, val value: String) {
+enum class Outcome(val score: Int, val value: String) {
     LOSE(0, "X"),
     DRAW(3, "Y"),
     WIN(6, "Z");
 
     companion object {
-        fun fromXYZ(moveString: String) = Result.values().first { it.value == moveString }
+        fun fromXYZ(moveString: String) = Outcome.values().first { it.value == moveString }
     }
 }

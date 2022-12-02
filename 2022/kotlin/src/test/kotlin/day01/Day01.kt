@@ -1,3 +1,5 @@
+package day01
+
 import FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

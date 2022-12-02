@@ -1,6 +1,8 @@
 package day02
 
 import FileUtil.readInputFileToList
+import day02.Move.*
+import day02.Result.*
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -27,15 +29,9 @@ class Day02 {
     }
 }
 
-private fun part1Score(input: List<String>) =
-    input.map { makeRoundForPart1(it) }
-        .map { it.score() }
-        .sum()
+private fun part1Score(input: List<String>) = input.map { makeRoundForPart1(it) }.sumOf { it.score() }
 
-private fun part2Score(input: List<String>) =
-    input.map { makeRoundForPart2(it) }
-        .map { it.score() }
-        .sum()
+private fun part2Score(input: List<String>) = input.map { makeRoundForPart2(it) }.sumOf { it.score() }
 
 private fun makeRoundForPart1(inputLine: String): Round {
     val (opponentMove, yourMove) = inputLine.split(" ")
@@ -47,28 +43,25 @@ private fun makeRoundForPart2(inputLine: String): Round {
     val (opponentMoveString, desiredOutcomeString) = inputLine.split(" ")
 
     val opponentMove = Move.fromABC(opponentMoveString)
-    val desiredOutcome = desiredOutcomeString[0] - 'X'
+    val desiredOutcome = Result.fromXYZ(desiredOutcomeString)
 
     val yourMove = when (opponentMove) {
-        Move.ROCK -> when (desiredOutcome) {
-            MUST_LOSE -> Move.SCISSORS
-            MUST_DRAW -> Move.ROCK
-            MUST_WIN -> Move.PAPER
-            else -> throw java.lang.IllegalArgumentException(desiredOutcome.toString())
+        ROCK -> when (desiredOutcome) {
+            LOSE -> SCISSORS
+            DRAW -> ROCK
+            WIN -> PAPER
         }
 
-        Move.PAPER -> when (desiredOutcome) {
-            MUST_LOSE -> Move.ROCK
-            MUST_DRAW -> Move.PAPER
-            MUST_WIN -> Move.SCISSORS
-            else -> throw java.lang.IllegalArgumentException(desiredOutcome.toString())
+        PAPER -> when (desiredOutcome) {
+            LOSE -> ROCK
+            DRAW -> PAPER
+            WIN -> SCISSORS
         }
 
-        Move.SCISSORS -> when (desiredOutcome) {
-            MUST_LOSE -> Move.PAPER
-            MUST_DRAW -> Move.SCISSORS
-            MUST_WIN -> Move.ROCK
-            else -> throw java.lang.IllegalArgumentException(desiredOutcome.toString())
+        SCISSORS -> when (desiredOutcome) {
+            LOSE -> PAPER
+            DRAW -> SCISSORS
+            WIN -> ROCK
         }
     }
 
@@ -77,25 +70,25 @@ private fun makeRoundForPart2(inputLine: String): Round {
 
 data class Round(val opponentMove: Move, val yourMove: Move) {
     fun score(): Int {
-        return yourMove.moveScore() + scoreForContest(yourMove, opponentMove)
+        return yourMove.moveScore() + resultForContest(yourMove, opponentMove).score
     }
 
-    private fun scoreForContest(yourMove: Move, opponentMove: Move): Int {
+    private fun resultForContest(yourMove: Move, opponentMove: Move): Result {
         return when (yourMove) {
-            Move.ROCK -> when (opponentMove) {
-                Move.ROCK -> DRAW
-                Move.PAPER -> LOSE
-                Move.SCISSORS -> WIN
+            ROCK -> when (opponentMove) {
+                ROCK -> DRAW
+                PAPER -> LOSE
+                SCISSORS -> WIN
             }
-            Move.PAPER -> when (opponentMove) {
-                Move.ROCK -> WIN
-                Move.PAPER -> DRAW
-                Move.SCISSORS -> LOSE
+            PAPER -> when (opponentMove) {
+                ROCK -> WIN
+                PAPER -> DRAW
+                SCISSORS -> LOSE
             }
-            Move.SCISSORS -> when (opponentMove) {
-                Move.ROCK -> LOSE
-                Move.PAPER -> WIN
-                Move.SCISSORS -> DRAW
+            SCISSORS -> when (opponentMove) {
+                ROCK -> LOSE
+                PAPER -> WIN
+                SCISSORS -> DRAW
             }
         }
     }
@@ -112,23 +105,28 @@ val testInput = """
 
 
 // TODO enum class innit
-enum class Move(val value: Int) {
+enum class Move(private val value: Int) {
     ROCK(0),
     PAPER(1),
     SCISSORS(2);
 
+    val abcValue = (value + 'A'.code).toChar().toString()
+    val xyzValue = (value + 'X'.code).toChar().toString()
+
     fun moveScore() = value + 1
 
     companion object {
-        fun fromABC(moveString: String) = Move.values().first { it.value == moveString[0] - 'A' }
-        fun fromXYZ(moveString: String) = values().first { it.value == moveString[0] - 'X' }
+        fun fromABC(moveString: String) = Move.values().first { it.abcValue == moveString }
+        fun fromXYZ(moveString: String) = values().first { it.xyzValue == moveString }
     }
 }
 
-const val LOSE = 0
-const val DRAW = 3
-const val WIN = 6
+enum class Result(val score: Int, val value: String) {
+    LOSE(0, "X"),
+    DRAW(3, "Y"),
+    WIN(6, "Z");
 
-const val MUST_LOSE = 0
-const val MUST_DRAW = 1
-const val MUST_WIN = 2
+    companion object {
+        fun fromXYZ(moveString: String) = Result.values().first { it.value == moveString }
+    }
+}

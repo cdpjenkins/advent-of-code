@@ -40,73 +40,65 @@ private fun part2Score(input: List<String>) =
 private fun makeRoundForPart1(inputLine: String): Round {
     val (opponentMove, yourMove) = inputLine.split(" ")
 
-    return Round(opponentMove[0] - 'A', yourMove[0] - 'X')
+    return Round(Move.fromABC(opponentMove), Move.fromXYZ(yourMove))
 }
 
 private fun makeRoundForPart2(inputLine: String): Round {
     val (opponentMoveString, desiredOutcomeString) = inputLine.split(" ")
 
-    val opponentMove = opponentMoveString[0] - 'A'
+    val opponentMove = Move.fromABC(opponentMoveString)
     val desiredOutcome = desiredOutcomeString[0] - 'X'
 
     val yourMove = when (opponentMove) {
-        ROCK -> when (desiredOutcome) {
-            MUST_LOSE -> SCISSORS
-            MUST_DRAW -> ROCK
-            MUST_WIN -> PAPER
+        Move.ROCK -> when (desiredOutcome) {
+            MUST_LOSE -> Move.SCISSORS
+            MUST_DRAW -> Move.ROCK
+            MUST_WIN -> Move.PAPER
             else -> throw java.lang.IllegalArgumentException(desiredOutcome.toString())
         }
 
-        PAPER -> when (desiredOutcome) {
-            MUST_LOSE -> ROCK
-            MUST_DRAW -> PAPER
-            MUST_WIN -> SCISSORS
+        Move.PAPER -> when (desiredOutcome) {
+            MUST_LOSE -> Move.ROCK
+            MUST_DRAW -> Move.PAPER
+            MUST_WIN -> Move.SCISSORS
             else -> throw java.lang.IllegalArgumentException(desiredOutcome.toString())
         }
 
-        SCISSORS -> when (desiredOutcome) {
-            MUST_LOSE -> PAPER
-            MUST_DRAW -> SCISSORS
-            MUST_WIN -> ROCK
+        Move.SCISSORS -> when (desiredOutcome) {
+            MUST_LOSE -> Move.PAPER
+            MUST_DRAW -> Move.SCISSORS
+            MUST_WIN -> Move.ROCK
             else -> throw java.lang.IllegalArgumentException(desiredOutcome.toString())
         }
-        else -> throw java.lang.IllegalArgumentException(desiredOutcome.toString())
     }
 
     return Round(opponentMove, yourMove)
 }
 
-
-data class Round(val opponentMove: Int, val yourMove: Int) {
+data class Round(val opponentMove: Move, val yourMove: Move) {
     fun score(): Int {
-        return yourMove + 1 + scoreForContest(yourMove, opponentMove)
+        return yourMove.moveScore() + scoreForContest(yourMove, opponentMove)
     }
 
-    private fun scoreForContest(yourMove: Int, opponentMove: Int): Int {
+    private fun scoreForContest(yourMove: Move, opponentMove: Move): Int {
         return when (yourMove) {
-            ROCK -> when (opponentMove) {
-                ROCK -> DRAW
-                PAPER -> LOSE
-                SCISSORS -> WIN
-                else -> throw IllegalArgumentException(opponentMove.toString())
+            Move.ROCK -> when (opponentMove) {
+                Move.ROCK -> DRAW
+                Move.PAPER -> LOSE
+                Move.SCISSORS -> WIN
             }
-            PAPER -> when (opponentMove) {
-                ROCK -> WIN
-                PAPER -> DRAW
-                SCISSORS -> LOSE
-                else -> throw IllegalArgumentException(opponentMove.toString())
-
+            Move.PAPER -> when (opponentMove) {
+                Move.ROCK -> WIN
+                Move.PAPER -> DRAW
+                Move.SCISSORS -> LOSE
             }
-            SCISSORS -> when (opponentMove) {
-                ROCK -> LOSE
-                PAPER -> WIN
-                SCISSORS -> DRAW
-                else -> throw IllegalArgumentException(opponentMove.toString())
+            Move.SCISSORS -> when (opponentMove) {
+                Move.ROCK -> LOSE
+                Move.PAPER -> WIN
+                Move.SCISSORS -> DRAW
             }
-            else -> throw IllegalArgumentException(yourMove.toString())
         }
     }
-
 }
 
 
@@ -120,9 +112,18 @@ val testInput = """
 
 
 // TODO enum class innit
-const val ROCK = 0
-const val PAPER = 1
-const val SCISSORS = 2
+enum class Move(val value: Int) {
+    ROCK(0),
+    PAPER(1),
+    SCISSORS(2);
+
+    fun moveScore() = value + 1
+
+    companion object {
+        fun fromABC(moveString: String) = Move.values().first { it.value == moveString[0] - 'A' }
+        fun fromXYZ(moveString: String) = values().first { it.value == moveString[0] - 'X' }
+    }
+}
 
 const val LOSE = 0
 const val DRAW = 3

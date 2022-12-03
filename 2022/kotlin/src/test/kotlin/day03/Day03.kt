@@ -9,70 +9,56 @@ class Day03 {
 
     @Test
     internal fun `part 1 sample input`() {
-        val score = testInput.sumOf(String::rucksackScore)
-
-        score shouldBe 157
+        testInput.sumOfRucksackScores() shouldBe 157
     }
 
     @Test
     internal fun `part 1 real input`() {
-        val score = realInput.sumOf(String::rucksackScore)
-
-        score shouldBe 7766
+        realInput.sumOfRucksackScores() shouldBe 7766
     }
 
     @Test
     internal fun `part2 test input`() {
-        val intersects = testInput.chunked(3).map { it.part2Score() }
-
-        val sumOf = intersects.sumOf(Char::priority)
-
-        sumOf shouldBe 70
+        testInput.sumOfItemsSharedInGroupsOfThree() shouldBe 70
     }
 
     @Test
     internal fun `part2 real input`() {
-        val intersects = realInput.chunked(3).map { it.part2Score() }
-
-        val sumOf = intersects.sumOf(Char::priority)
-
-        sumOf shouldBe 2415
+        realInput.sumOfItemsSharedInGroupsOfThree() shouldBe 2415
     }
 }
 
-private fun List<String>.part2Score(): Char {
-    val sets = this.map { it.toSet() }
-    val intersectMeDo = sets.reduce(Set<Char>::intersect)
+private fun List<String>.sumOfRucksackScores() = sumOf(String::rucksackScore)
 
-    if (intersectMeDo.size != 1) {
-        throw IllegalArgumentException(intersectMeDo.toString())
-    }
+private fun List<String>.sumOfItemsSharedInGroupsOfThree(): Int =
+    chunked(3)
+        .map(::scoreOfSharedItemInGroupOfThreeRucksacks)
+        .sumOf(::priority)
 
-    return intersectMeDo.first()
-}
+private fun scoreOfSharedItemInGroupOfThreeRucksacks(rucksacks: List<String>): Char =
+    rucksacks.map { it.toSet() }
+        .reduce(Set<Char>::intersect)
+        .assertSingleElement()
+        .first()
 
-private fun String.rucksackScore(): Int {
-    val compartmentSize = this.length / 2
-
-    val compartment1 = this.take(compartmentSize).toSet()
-    val compartment2 = this.drop(compartmentSize).toSet()
-
-    val intersect = compartment1.intersect(compartment2)
-
-    println(intersect)
-
-    return intersect.map { it.priority() }.sum()
-}
-
-private fun Char.priority(): Int {
-    if (this >= 'a' && this <= 'z') {
-        return this - 'a' + 1
-    } else if (this >= 'A' && this <= 'Z') {
-        return this - 'A' + 27
+private fun Set<Char>.assertSingleElement(): Set<Char> =
+    if (size != 1) {
+        throw IllegalArgumentException(toString())
     } else {
-        throw IllegalArgumentException(this.toString())
+        this
     }
-}
+
+private fun String.rucksackScore(): Int =
+    take(length / 2).toSet()
+        .intersect(drop(length / 2).toSet())
+        .sumOf { priority(it) }
+
+private fun priority(item: Char): Int =
+    when (item) {
+        in 'a'..'z' -> item - 'a' + 1
+        in 'A'..'Z' -> item - 'A' + 27
+        else -> throw IllegalArgumentException(item.toString())
+    }
 
 val testInput =
     """

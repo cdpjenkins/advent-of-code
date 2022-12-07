@@ -10,34 +10,58 @@ class Day07 {
 
     @Test
     internal fun `part 1 with test data`() {
-        val input = testInput
-
-        val commands = parseCommands(input)
-
-        val sumOfSizesInnit = commands
-            .buildDirStructure()
-            .traverse()
-            .filter { it is DirectoryNode }
-            .filter { it.size() <= 100000 }.sumOf { it.size() }
-
-        sumOfSizesInnit shouldBe 95437
+        sumOfSizesOfDirsUnder10000(testInput) shouldBe 95437
     }
 
     @Test
     internal fun `part 1 with real data`() {
-        val input = realInput
+        sumOfSizesOfDirsUnder10000(realInput) shouldBe 1908462
+    }
 
-        val commands = parseCommands(input)
+    @Test
+    internal fun `part 2 with test data`() {
+        sizeOfSmallestDirThatFreesUpEnoughSpace(testInput) shouldBe 24933642
+    }
 
-        val sumOfSizesInnit = commands
-            .buildDirStructure()
+    @Test
+    internal fun `part 2 with real data`() {
+        sizeOfSmallestDirThatFreesUpEnoughSpace(realInput) shouldBe 3979145
+    }
+
+    private fun sizeOfSmallestDirThatFreesUpEnoughSpace(input: List<String>): Long {
+        val dirStructure = buildDirTree(input)
+
+        val totalSizeUsed = dirStructure.size()
+        val freeSpace = 70000000 - totalSizeUsed
+        val spaceNeeded = 30000000 - freeSpace
+
+        val nodeToDelete = dirStructure
+            .traverse()
+            .filter { it is DirectoryNode }
+            .sortedBy { it.size() }
+            .first { it.size() >= spaceNeeded }
+
+        val sizeToDelete = nodeToDelete.size()
+        return sizeToDelete
+    }
+
+    private fun sumOfSizesOfDirsUnder10000(input: List<String>): Long {
+        val dirTree = buildDirTree(input)
+
+        val sumOfSizesOfDirsUnder10000 = dirTree
             .traverse()
             .filter { it is DirectoryNode }
             .filter { it.size() <= 100000 }.sumOf { it.size() }
-
-        sumOfSizesInnit shouldBe -1
+        return sumOfSizesOfDirsUnder10000
     }
 
+    private fun buildDirTree(input: List<String>): Inode {
+        val commands = parseCommands(input)
+
+        val buildDirTree = commands
+            .buildDirStructure()
+        return buildDirTree
+    }
 
     private fun parseCommands(input: List<String>): MutableList<Command> {
         var input1 = input
@@ -74,7 +98,7 @@ sealed interface Inode {
     val name: String
     val parent: DirectoryNode?
     var children: MutableList<Inode>
-    fun size(): Int
+    fun size(): Long
     fun dumpToStdout(indent: Int = 0) {
         println("${indentBy(indent)}$this ${size()}")
         children.forEach { it.dumpToStdout(indent + 2) }
@@ -89,14 +113,14 @@ fun indentBy(indent: Int) = (1..indent).map { " " }.joinToString("")
 
 data class DirectoryNode(override val name: String, override val parent: DirectoryNode?) : Inode {
     override var children: MutableList<Inode> = mutableListOf()
-    override fun size(): Int {
+    override fun size(): Long {
         return children.map { it.size() }.sum()
     }
 }
 
-data class FileNode(override val name: String, override val parent: DirectoryNode, val size: Int) : Inode {
+data class FileNode(override val name: String, override val parent: DirectoryNode, val size: Long) : Inode {
     override var children: MutableList<Inode> = mutableListOf()
-    override fun size(): Int {
+    override fun size(): Long {
         return size
     }
 }
@@ -123,7 +147,6 @@ data class LsCommand(val entries: List<Entry>) : Command {
         val children = entries.map {
             it.toNode(currentNode)
         }
-
         currentNode.children.addAll(children)
 
         return currentNode
@@ -148,7 +171,7 @@ data class DirEntry(val name: String) : Entry {
     }
 }
 
-data class FileEntry(val name: String, val size: Int) : Entry {
+data class FileEntry(val name: String, val size: Long) : Entry {
     override fun toNode(parent: DirectoryNode): Inode {
         return FileNode(name, parent, this.size)
     }
@@ -188,7 +211,7 @@ private fun String.parseDirEntry(): Entry {
         }
         this.matches(FileEntry.REGEX) -> {
             val (size, name) = this.parseUsingRegex(FileEntry.REGEX)
-            return FileEntry(name, size.toInt())
+            return FileEntry(name, size.toLong())
 
         }
         else -> throw IllegalArgumentException(this)

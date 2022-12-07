@@ -45,32 +45,24 @@ class Day07 {
         return sizeToDelete
     }
 
-    private fun sumOfSizesOfDirsUnder10000(input: List<String>): Long {
-        val dirTree = buildDirTree(input)
-
-        val sumOfSizesOfDirsUnder10000 = dirTree
+    private fun sumOfSizesOfDirsUnder10000(input: List<String>): Long =
+        buildDirTree(input)
             .traverse()
             .filter { it is DirectoryNode }
-            .filter { it.size() <= 100000 }.sumOf { it.size() }
-        return sumOfSizesOfDirsUnder10000
-    }
+            .filter { it.size() <= 100000 }
+            .sumOf { it.size() }
 
-    private fun buildDirTree(input: List<String>): Inode {
-        val commands = parseCommands(input)
-
-        val buildDirTree = commands
+    private fun buildDirTree(input: List<String>): Inode =
+        parseCommands(input)
             .buildDirStructure()
-        return buildDirTree
-    }
 
     private fun parseCommands(input: List<String>): MutableList<Command> {
-        var input1 = input
+        var remainingInput = input
         val commands = mutableListOf<Command>()
 
-        while (!input1.isEmpty()) {
-            val (command, inputSton) = parseNextCommand(input1)
-
-            input1 = inputSton
+        while (!remainingInput.isEmpty()) {
+            val (command, nextInput) = parseNextCommand(remainingInput)
+            remainingInput = nextInput
             commands.add(command)
         }
         return commands
@@ -87,9 +79,7 @@ private fun List<Command>.buildDirStructure(): Inode {
 
     LsCommand(listOf()).execute(currentNode)
 
-    this.drop(1).forEach { it: Command ->
-        currentNode = it.execute(currentNode)
-    }
+    this.drop(1).forEach { currentNode = it.execute(currentNode) }
 
     return root
 }
@@ -113,29 +103,24 @@ fun indentBy(indent: Int) = (1..indent).map { " " }.joinToString("")
 
 data class DirectoryNode(override val name: String, override val parent: DirectoryNode?) : Inode {
     override var children: MutableList<Inode> = mutableListOf()
-    override fun size(): Long {
-        return children.map { it.size() }.sum()
-    }
+    override fun size(): Long = children.map { it.size() }.sum()
 }
 
 data class FileNode(override val name: String, override val parent: DirectoryNode, val size: Long) : Inode {
     override var children: MutableList<Inode> = mutableListOf()
-    override fun size(): Long {
-        return size
-    }
+    override fun size(): Long = size
 }
 
 sealed interface Command {
     fun execute(currentNode: DirectoryNode): DirectoryNode
 }
 data class CdCommand(val path: String): Command {
-    override fun execute(currentNode: DirectoryNode): DirectoryNode {
+    override fun execute(currentNode: DirectoryNode): DirectoryNode =
         if (this.path == "..") {
-            return currentNode.parent!!
+            currentNode.parent!!
         } else {
-            return currentNode.children.find { it.name == this.path }!! as DirectoryNode
+            currentNode.children.find { it.name == this.path }!! as DirectoryNode
         }
-    }
 
     companion object {
         val REGEX = "^\\$ cd (.*)$".toRegex()
@@ -182,23 +167,22 @@ data class FileEntry(val name: String, val size: Long) : Entry {
 }
 
 fun parseNextCommand(input: List<String>): Pair<Command, List<String>> {
-    val first = input.first()
+    val command = input.first()
+    val rest = input.drop(1)
 
     when {
-        first.matches(CdCommand.REGEX) -> {
-            val (path) = first.parseUsingRegex(CdCommand.REGEX)
-            return Pair(CdCommand((path)), input.drop(1))
+        command.matches(CdCommand.REGEX) -> {
+            val (path) = command.parseUsingRegex(CdCommand.REGEX)
+            return Pair(CdCommand(path), rest)
         }
-        first.matches(LsCommand.REGEX) -> {
-            val rest = input.drop(1)
-
+        command.matches(LsCommand.REGEX) -> {
             val dirEntriesStrings = rest.takeWhile { !it.startsWith("$") }
             val entries = dirEntriesStrings.map { it.parseDirEntry() }
 
             return Pair(LsCommand(entries), rest.dropWhile { !it.startsWith("$") } )
         }
         else -> {
-            throw IllegalArgumentException(first)
+            throw IllegalArgumentException(command)
         }
     }
 }
@@ -212,7 +196,6 @@ private fun String.parseDirEntry(): Entry {
         this.matches(FileEntry.REGEX) -> {
             val (size, name) = this.parseUsingRegex(FileEntry.REGEX)
             return FileEntry(name, size.toLong())
-
         }
         else -> throw IllegalArgumentException(this)
     }

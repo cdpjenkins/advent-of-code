@@ -16,7 +16,23 @@ class Day08 {
         numTreesVisible(realInput) shouldBe 1698
     }
 
-    private fun numTreesVisible(input: List<String>): Int {
+    @Test
+    internal fun `part 2 test data`() {
+        parseGrid(testInput).highestScenicScore() shouldBe 8
+    }
+
+    @Test
+    internal fun `part 2 real data`() {
+        parseGrid(realInput).highestScenicScore() shouldBe 672280
+    }
+
+    private fun numTreesVisible(input: List<String>) =
+        parseGrid(input)
+            .trees
+            .filter { (pos, _) -> parseGrid(input).isVisible(pos) }
+            .size
+
+    private fun parseGrid(input: List<String>): Grid {
         val width = input[0].length
         val height = input.size
 
@@ -27,9 +43,7 @@ class Day08 {
         }.toMap()
 
         val grid = Grid(gridMap, width, height)
-        val visibleTrees: Map<Point2D, Int> = grid.trees.filter { (pos, _) -> grid.isVisible(pos) }
-
-        return visibleTrees.size
+        return grid
     }
 }
 
@@ -62,6 +76,37 @@ data class Grid(
     private fun goSouth(pos: Point2D) = (pos.y+1 .. height-1).map { y -> treeAt(pos.x, y) }
     private fun goEast(pos: Point2D) = (pos.x+1..width-1).map { x-> treeAt(x, pos.y) }
     private fun goNorth(pos: Point2D): List<Int> = (pos.y-1 downTo 0).map { y -> treeAt(pos.x, y) }
+
+    private fun viewWest(pos: Point2D) = view(treeAt(pos), goWest(pos))
+    private fun viewSouth(pos: Point2D) = view(treeAt(pos), goSouth(pos))
+    private fun viewEast(pos: Point2D) = view(treeAt(pos), goEast(pos))
+    private fun viewNorth(pos: Point2D) = view(treeAt(pos), goNorth(pos))
+
+
+    private fun view(thisTree: Int, trees: List<Int>): List<Int> {
+        val treesViewedMinusOne = trees.takeWhile { it < thisTree }
+        val remainingTrees = trees.dropWhile { it < thisTree }
+        if (remainingTrees.isNotEmpty() ) {
+            return treesViewedMinusOne + remainingTrees.first()
+        } else {
+            return treesViewedMinusOne
+        }
+    }
+
+    fun scenicScore(pos: Point2D): Int {
+        return viewWest(pos).size *
+                viewSouth(pos).size *
+                viewEast(pos).size *
+                viewNorth(pos).size
+    }
+
+    fun highestScenicScore(): Int {
+        val maxScore = trees.keys.map {
+            scenicScore(it)
+        }.max()
+
+        return maxScore
+    }
 }
 
 val testInput =

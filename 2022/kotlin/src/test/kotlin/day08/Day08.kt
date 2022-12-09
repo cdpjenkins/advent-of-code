@@ -1,6 +1,7 @@
 package day08
 
 import FileUtil.readInputFileToList
+import Point2D
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -46,11 +47,6 @@ class Day08 {
         return grid
     }
 }
-
-data class Point2D(
-    val x: Int,
-    val y: Int
-)
 
 data class Grid(
     val trees: Map<Point2D, Int>,

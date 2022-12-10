@@ -27,11 +27,13 @@ class Day08 {
         parseGrid(realInput).highestScenicScore() shouldBe 672280
     }
 
-    private fun numTreesVisible(input: List<String>) =
-        parseGrid(input)
+    private fun numTreesVisible(input: List<String>): Int {
+        val grid = parseGrid(input)
+        return grid
             .trees
-            .filter { (pos, _) -> parseGrid(input).isVisible(pos) }
+            .filter { (pos, _) -> grid.isVisible(pos) }
             .size
+    }
 
     private fun parseGrid(input: List<String>): Grid {
         val width = input[0].length

@@ -4,10 +4,9 @@ import FileUtil.readInputFileToList
 import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import kotlin.math.absoluteValue
 
 class Day10 {
-
-
     @Test
     internal fun `part 1 with simple test data`() {
         val simpleTestInput =
@@ -64,8 +63,51 @@ class Day10 {
             .chunked(40)
             .map { it.first() }.map { it.index * it.value }.sum()
 
-        sum shouldBe 13140
+        sum shouldBe 14320
     }
+
+    @Test
+    internal fun `part 2 test data`() {
+        parseToMachineState(testInput).generateImage() shouldBe
+                """
+                    ##..##..##..##..##..##..##..##..##..##..
+                    ###...###...###...###...###...###...###.
+                    ####....####....####....####....####....
+                    #####.....#####.....#####.....#####.....
+                    ######......######......######......####
+                    #######.......#######.......#######.....
+                """.trimIndent().lines()
+    }
+
+    @Test
+    internal fun `part 2 real data`() {
+        parseToMachineState(realInput).generateImage() shouldBe
+                """
+                    ###...##..###..###..#..#..##..###....##.
+                    #..#.#..#.#..#.#..#.#.#..#..#.#..#....#.
+                    #..#.#....#..#.###..##...#..#.#..#....#.
+                    ###..#....###..#..#.#.#..####.###.....#.
+                    #....#..#.#....#..#.#.#..#..#.#....#..#.
+                    #.....##..#....###..#..#.#..#.#.....##..
+                """.trimIndent().lines()
+    }
+}
+
+private fun MachineState.generateImage() =
+    generateSequence(this) { it.executeCycle() }
+        .takeWhile { it.running }
+        .map { it.accumulator }
+        .take(40 * 6)
+        .toList()
+        .withIndex()
+        .map { it.spriteVisible() }
+        .map { if (it) "#" else "." }
+        .chunked(40)
+        .map { it.joinToString("") }
+
+private fun IndexedValue<Int>.spriteVisible(): Boolean {
+    val posInLine = this.index % 40
+    return (value - posInLine).absoluteValue <= 1
 }
 
 private fun parseToMachineState(input: List<String>): MachineState {

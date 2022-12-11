@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 class Day09 {
     @Test
     internal fun `part 1 test data`() {
-        // TODO - finish me!
         val input = testInput
         val instructions = input.flatMap { it.parseInstruction() }
         val initialRope = makeRope()
@@ -20,8 +19,6 @@ class Day09 {
             .toSet()
         val positionsVisited = visitedSet
             .size
-
-        dumpPath(visitedSet)
 
         positionsVisited shouldBe 13
     }
@@ -40,8 +37,6 @@ class Day09 {
         val positionsVisited = visitedSet
             .size
 
-        dumpPath(visitedSet)
-
         positionsVisited shouldBe 6030
     }
 
@@ -58,8 +53,6 @@ class Day09 {
             .toSet()
         val positionsVisited = visitedSet
             .size
-
-        dumpPath(visitedSet)
 
         positionsVisited shouldBe 36
     }
@@ -80,8 +73,6 @@ class Day09 {
             .toSet()
         val positionsVisited = visitedSet
             .size
-
-        dumpPath(visitedSet)
 
         positionsVisited shouldBe 2545
     }

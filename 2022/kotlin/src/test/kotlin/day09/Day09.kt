@@ -16,7 +16,7 @@ class Day09 {
         val path = instructions.runningFold(initialRope) { rope: Rope, direction: Direction -> rope.execute(direction) }
 
         val visitedSet = path
-            .map { it.tail }
+            .map { it.knots.last() }
             .toSet()
         val positionsVisited = visitedSet
             .size
@@ -35,7 +35,7 @@ class Day09 {
         val path = instructions.runningFold(initialRope) { rope: Rope, direction: Direction -> rope.execute(direction) }
 
         val visitedSet = path
-            .map { it.tail }
+            .map { it.knots.last() }
             .toSet()
         val positionsVisited = visitedSet
             .size
@@ -54,7 +54,7 @@ class Day09 {
         val path = instructions.runningFold(initialRope) { rope: Rope, direction: Direction -> rope.execute(direction) }
 
         val visitedSet = path
-            .map { it.tail }
+            .map { it.knots.last() }
             .toSet()
         val positionsVisited = visitedSet
             .size
@@ -62,6 +62,28 @@ class Day09 {
         dumpPath(visitedSet)
 
         positionsVisited shouldBe 36
+    }
+
+
+
+    @Test
+    internal fun `part 2 real data`() {
+        // TODO - finish me!
+        val input = realInput
+
+        val instructions = input.flatMap { it.parseInstruction() }
+        val initialRope = makeRope(numKnots = 10)
+        val path = instructions.runningFold(initialRope) { rope: Rope, direction: Direction -> rope.execute(direction) }
+
+        val visitedSet = path
+            .map { it.knots.last() }
+            .toSet()
+        val positionsVisited = visitedSet
+            .size
+
+        dumpPath(visitedSet)
+
+        positionsVisited shouldBe 2545
     }
 
     private fun dumpPath(visitedSet: Set<Point2D>) {
@@ -78,8 +100,7 @@ class Day09 {
     }
 }
 
-private fun makeRope(numKnots: Int = 2) = Rope()
-
+private fun makeRope(numKnots: Int = 2) = Rope(List(numKnots) { Point2D(0, 0) } )
 
 private fun String.parseInstruction(): List<Direction> {
     val (directionString: String, distanceString) = this.parseUsingRegex("^(L|R|U|D) (\\d+)$")
@@ -89,13 +110,20 @@ private fun String.parseInstruction(): List<Direction> {
 }
 
 data class Rope(
-    val head: Point2D = Point2D(0, 0),
-    val tail: Point2D = Point2D(0, 0)
+    val knots: List<Point2D>
 ) {
     fun execute(direction: Direction): Rope {
-        val newHead = direction.execute(head)
-        val newTail = tail.follow(newHead)
-        return Rope(newHead, newTail)
+        val newHead = direction.execute(knots.first())
+
+        val newKnots = mutableListOf(newHead)
+
+        (1..knots.size - 1).forEach { i ->
+            val knotWeAreFollowing = newKnots[i - 1]
+            val newKnot = knots[i].follow(knotWeAreFollowing)
+            newKnots.add(newKnot)
+        }
+
+        return Rope(newKnots.toList())
     }
 }
 

@@ -8,114 +8,72 @@ import org.junit.jupiter.api.Test
 class Day11 {
     @Test
     fun `part 1 test data`() {
-        val input = testInput
-
-        val monkeys = parseMonkeys(input)
-
-        val afterRound20 = generateSequence(monkeys) { it.oneRound(3) }.take(21).toList()[20]
-
-        val productOfThrowses = afterRound20
-            .map { it.numThrows }
-            .sorted()
-            .reversed()
-            .take(2).reduce { x, y -> x * y }
-
-        productOfThrowses shouldBe 10605
+        productOfThrowsOfTwoMostActiveMonkeys(
+            monkeys = parseMonkeys(testInput),
+            divideBy = 3,
+            numRounds = 20
+        ) shouldBe 10605
     }
 
     @Test
     fun `part 1 real data`() {
-        val input = realInput
-
-        val monkeys = parseMonkeys(input)
-
-        val afterRound20 = generateSequence(monkeys) { it.oneRound(3) }.take(21).toList()[20]
-
-        val productOfThrowses = afterRound20
-            .map { it.numThrows }
-            .sorted()
-            .reversed()
-            .take(2).reduce { x, y -> x * y }
-
-        productOfThrowses shouldBe 99840
+        productOfThrowsOfTwoMostActiveMonkeys(
+            monkeys = parseMonkeys(realInput),
+            divideBy = 3,
+            numRounds = 20
+        ) shouldBe 99840
     }
 
     @Test
     fun `part 2 test data`() {
-        val input = testInput
-
-        val monkeys = parseMonkeys(input)
-
-        val monkeySequence = generateSequence(monkeys) { it.oneRound(1) }.take(10001).toList()
-
-        monkeySequence[1].map { it.numThrows } shouldBe listOf(2, 4, 3, 6)
-        monkeySequence[20].map { it.numThrows } shouldBe listOf(99, 97, 8, 103)
-        println(monkeySequence[1000].map { it.items })
-        monkeySequence[1000].map { it.numThrows } shouldBe listOf(5204, 4792, 199, 5192)
-
-        val afterRound20 = monkeySequence[10000]
-
-        val productOfThrowses = afterRound20
-            .map { it.numThrows }
-            .sorted()
-            .reversed()
-            .take(2).reduce { x, y -> x * y }
-
-        productOfThrowses shouldBe 2713310158
+        productOfThrowsOfTwoMostActiveMonkeys(
+            monkeys = parseMonkeys(testInput),
+            divideBy = 1,
+            numRounds = 10000
+        ) shouldBe 2713310158
     }
 
     @Test
     fun `part 2 real data`() {
-        val input = realInput
+        productOfThrowsOfTwoMostActiveMonkeys(
+            monkeys = parseMonkeys(realInput),
+            divideBy = 1,
+            numRounds = 10000
+        ) shouldBe 20683044837L
+    }
 
-        val monkeys = parseMonkeys(input)
-
-        val monkeySequence = generateSequence(monkeys) { it.oneRound(1) }.take(10001).toList()
-
-        val afterRound20 = monkeySequence[10000]
-
-        val productOfThrowses = afterRound20
+    private fun productOfThrowsOfTwoMostActiveMonkeys(
+        monkeys: List<Monkey>,
+        divideBy: Long,
+        numRounds: Int
+    ): Long =
+        generateSequence(monkeys) { it.oneRound(divideBy) }
+            .take(numRounds + 1)
+            .toList()[numRounds]
             .map { it.numThrows }
             .sorted()
             .reversed()
-            .take(2).reduce { x, y -> x * y }
-
-        productOfThrowses shouldBe 20683044837L
-    }
+            .take(2)
+            .reduce { x, y -> x * y }
 
     @Test
     internal fun `after one round with test data`() {
-        val input = testInput
-
-        val monkeys = parseMonkeys(input)
-
-        val monkeysAfterRoundOne = monkeys.oneRound(3)
-
-//        monkeysAfterRoundOne.map { it.items } shouldBe listOf(
-//            listOf(20, 23, 27, 26),
-//            listOf(2080, 25, 167, 207, 401, 1046),
-//            listOf(),
-//            listOf()
-//        )
-
-        monkeysAfterRoundOne.map { it.numThrows } shouldBe listOf(2, 4, 3, 5)
+        parseMonkeys(testInput)
+            .oneRound(divideBy = 3)
+            .map { it.numThrows } shouldBe listOf(2, 4, 3, 5)
     }
 
     @Test
     internal fun `first monkey inspects items - test data`() {
-        val input = testInput
-
-        val monkeys = parseMonkeys(input)
-
-        val monkey = monkeys.first()
-
-        val (updatedMonkey, throws) = monkey.inspectItems(3)
+        val (updatedMonkey, throws) =
+            parseMonkeys(testInput)
+                .first()
+                .inspectItems(3)
 
         throws shouldBe listOf(
             Throw(3, 500),
             Throw(3, 620)
         )
-
         updatedMonkey.numThrows shouldBe 2
     }
 }
@@ -125,10 +83,7 @@ private fun List<Monkey>.oneRound(divideBy: Long): List<Monkey> {
     val monkeys = this.toMutableList()
 
     (0..monkeys.size-1).forEach { i ->
-        val monkey = monkeys[i]
-
-        val (newMonkey, throws) = monkey.inspectItems(divideBy)
-
+        val (newMonkey, throws) = monkeys[i].inspectItems(divideBy)
         monkeys[i] = newMonkey
         throws.forEach { thisThrow ->
             monkeys[thisThrow.toMonkey] = monkeys[thisThrow.toMonkey].throwTo(thisThrow.worryLevel)
@@ -162,8 +117,7 @@ data class Monkey(
     }
 
     private fun inspect(worryLevel: Long, divideBy: Long): Throw {
-        val ston = operation.applyTo(worryLevel) / divideBy
-        val newWorryLevel = ston % modulus
+        val newWorryLevel = operation.applyTo(worryLevel) / divideBy % modulus
         val throwTo = if (newWorryLevel % divisibleBy == 0L) toMonkeyIfTrue else toMonkeyIfFalse
 
         return Throw(throwTo, newWorryLevel)
@@ -252,6 +206,15 @@ private fun parseMonkeys(input: List<String>): List<Monkey> {
         Monkey.parse(it)
     }.toList()
 
+    // Why do we need a modulus here?
+    //
+    // We need to prevent the worry levels from growing too big without affecting the result of the "divisible by" test.
+    // In order to do this, we need a number that is itself divisible by each monkey's "divisible by" number. One such
+    // number is the product of all of those numbers. We then do arithmetic modulo that number.
+    //
+    // Note that the numbers in both the test input and the real input appear to be prime, so the lowest-common-multiple
+    // is easy: it's just the product of all the numbers. If they were not prime (and not co-prime) then there might be
+    // a smaller lowest-common-multiple.
     val modulus = monkeys.map { it.divisibleBy }.reduce { x, y -> x * y }
 
     return monkeys.map { it.copy(modulus = modulus)}
@@ -259,14 +222,15 @@ private fun parseMonkeys(input: List<String>): List<Monkey> {
 
 private fun String.parseStartingItemsList() = this.split(", ").map { it.toLong() }
 
-val MONKEY_REGEX = """
-Monkey (\d):
-  Starting items: (\d+(?:, \d+)*)
-  Operation: new = old ([*+]) (\d+|old)
-  Test: divisible by (\d+)
-    If true: throw to monkey (\d)
-    If false: throw to monkey (\d)
-        """.trimIndent().toRegex()
+val MONKEY_REGEX =
+    """
+        Monkey (\d):
+          Starting items: (\d+(?:, \d+)*)
+          Operation: new = old ([*+]) (\d+|old)
+          Test: divisible by (\d+)
+            If true: throw to monkey (\d)
+            If false: throw to monkey (\d)
+    """.trimIndent().toRegex()
 
 val testInput =
     """

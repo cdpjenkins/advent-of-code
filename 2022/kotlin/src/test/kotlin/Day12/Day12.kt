@@ -1,4 +1,4 @@
-package Day12
+package day12
 
 import FileUtil.readInputFileToList
 import Point2D
@@ -28,37 +28,36 @@ class Day12 {
     }
 
     private fun lengthOfShortedPathFromEndToGroundLevel(input: List<String>): Int {
-        val (heightMap, _, end) = parseToMap(input)
+        val (heightMap, _, endSquare) = parseToMap(input)
 
         val path = breadthFirstSearch(
             heightMap,
-            end,
+            endSquare,
             climbingDownwards,
-            { it.height == 0 }
+            climbingTowards(height = 0)
         )
 
-        val pathLength = path.size - 1
-        return pathLength
+        return path.size - 1
     }
 
     private fun lengthOfShortedPathFromStartToEnd(input: List<String>): Int {
-        val (heightMap, start, end) = parseToMap(input)
+        val (heightMap, startSquare, endSquare) = parseToMap(input)
 
         val path = breadthFirstSearch(
             heightMap,
-            start,
-            climbingUpwards
-        ) { it: Square -> it == end }
+            startSquare,
+            climbingUpwards,
+            climbingTowards(endSquare)
+        )
 
-        val pathLength = path.size - 1
-        return pathLength
+        return path.size - 1
     }
 
     private fun breadthFirstSearch(
         heightMap: Map<Point2D, Square>,
         start: Square,
         isClimbable: (Square, Square) -> Boolean,
-        endPredixcate: (Square) -> Boolean
+        endPredicate: (Square) -> Boolean
     ): List<Point2D> {
         // Ew there is so much mutable state here. I wish this was more functional but that was a bit too tricky to
         // achieve.
@@ -72,8 +71,6 @@ class Day12 {
         while (openSet.isNotEmpty()) {
             val current = openSet.remove()
             current.visited = true
-
-            val endPredicate = endPredixcate
 
             if (endPredicate(current)) {
                 return current.reconstructPath()
@@ -137,6 +134,10 @@ class Day12 {
 
 val climbingUpwards = { lhs: Square, rhs: Square -> lhs.height <= rhs.height + 1 }
 val climbingDownwards = { lhs: Square, rhs: Square -> rhs.height <= lhs.height +1 }
+
+private fun climbingTowards(height: Int): (Square) -> Boolean = { it.height == height }
+fun climbingTowards(end: Square) = { it: Square -> it == end }
+
 data class Square(
     val position: Point2D,
     val height: Int,

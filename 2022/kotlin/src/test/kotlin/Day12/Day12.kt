@@ -5,87 +5,92 @@ import Point2D
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.util.PriorityQueue
-import kotlin.math.absoluteValue
 
 class Day12 {
     @Test
     internal fun `part 1 test input`() {
-        val input = testInput
-
-        val (heightMap, start, end) = parseToMap(input)
-
-        val path = aStarSearch(heightMap, start, end)
-
-        path.size - 1 shouldBe 31
+        lengthOfShortedPathFromStartToEnd(testInput) shouldBe 31
     }
 
     @Test
     internal fun `part 1 real input`() {
-        val input = realInput
-
-        val (heightMap, start, end) = parseToMap(input)
-
-        val path = aStarSearch(heightMap, start, end)
-
-        path.size - 1 shouldBe 330
+        lengthOfShortedPathFromStartToEnd(realInput) shouldBe 330
     }
 
     @Test
     internal fun `part 2 test input`() {
-        val input = testInput
-
-        val (heightMap, start, end) = parseToMap(input)
-
-        val potentialStartingPoints = heightMap.filter { (pos, square) -> square.height == 0 }
-        val minPathLength = potentialStartingPoints
-            .map { (pos, square) ->
-                val (heightMap, start, end) = parseToMap(input)
-                aStarSearch(heightMap, square, end)
-            }
-            .filter { it.isNotEmpty() }
-            .map { it.size - 1 }
-            .min()
-
-       minPathLength shouldBe 29
+        lengthOfShortedPathFromEndToGroundLevel(testInput) shouldBe 29
     }
 
     @Test
     internal fun `part 2 real input`() {
-        val input = realInput
-
-        val (heightMap, start, end) = parseToMap(input)
-
-        val potentialStartingPoints = heightMap.filter { (pos, square) -> square.height == 0 }
-        val minPathLength = potentialStartingPoints
-            .map { (pos, square) ->
-                val (heightMap, start, end) = parseToMap(input)
-                aStarSearch(heightMap, square, end)
-            }
-            .filter { it.isNotEmpty() }
-            .map { it.size - 1 }
-            .min()
-
-        minPathLength shouldBe 321
+        lengthOfShortedPathFromEndToGroundLevel(realInput) shouldBe 321
     }
 
-    private fun aStarSearch(heightMap: Map<Point2D, Square>, start: Square, end: Square): List<Point2D> {
-        val openSet = PriorityQueue<Square> { lhs, rhs ->
-            (lhs.scoreSoFar + lhs.heuristic(end)) - (rhs.scoreSoFar + rhs.heuristic(end))
-        }
+    private fun lengthOfShortedPathFromEndToGroundLevel(input: List<String>): Int {
+        val (heightMap, _, end) = parseToMap(input)
+
+        val path = breadthFirstSearch(
+            heightMap,
+            end,
+            climbingDownwards,
+            { it.height == 0 }
+        )
+
+        val pathLength = path.size - 1
+        return pathLength
+    }
+
+    private fun lengthOfShortedPathFromStartToEnd(input: List<String>): Int {
+        val (heightMap, start, end) = parseToMap(input)
+
+        val path = breadthFirstSearch(
+            heightMap,
+            start,
+            climbingUpwards
+        ) { it: Square -> it == end }
+
+        val pathLength = path.size - 1
+        return pathLength
+    }
+
+    private fun breadthFirstSearch(
+        heightMap: Map<Point2D, Square>,
+        start: Square,
+        isClimbable: (Square, Square) -> Boolean,
+        endPredixcate: (Square) -> Boolean
+    ): List<Point2D> {
+        // Ew there is so much mutable state here. I wish this was more functional but that was a bit too tricky to
+        // achieve.
+        // One thing to bear in mind: you can't do two breadth first searchs on the same set of Squares - because the
+        // first search mutates some of the state in the Squares. Consequently, you need to re-parse them if you want
+        // to do another search.
+
+        val openSet = PriorityQueue<Square> { lhs, rhs -> lhs.scoreSoFar - rhs.scoreSoFar }
         openSet.add(start)
 
         while (openSet.isNotEmpty()) {
             val current = openSet.remove()
             current.visited = true
 
-            if (current == end) {
-                // TODO - dunnit
+            val endPredicate = endPredixcate
+
+            if (endPredicate(current)) {
                 return current.reconstructPath()
             }
 
-            val reachableNeighbours = current.reachableNeighbours(heightMap)
+            val reachableNeighbours = listOf(
+                Point2D(current.position.x + 1, current.position.y),
+                Point2D(current.position.x, current.position.y + 1),
+                Point2D(current.position.x - 1, current.position.y),
+                Point2D(current.position.x, current.position.y - 1)
+            )
+                .map { heightMap[it] }
+                .filterNotNull()
+                .filter { !it.visited }
+                .filter { isClimbable(it, current) }
 
-            reachableNeighbours.forEach {neighbour ->
+            reachableNeighbours.forEach { neighbour ->
 
                 val tentativeScore = current.scoreSoFar + 2
 
@@ -105,20 +110,16 @@ class Day12 {
     }
 
     private fun parseToMap(input: List<String>): Triple<Map<Point2D, Square>, Square, Square> {
-        // TODO prob don't need
-        val girdWidth = input[0].length
-        val gridHeight = input.size
-
         val charMap = input.withIndex().flatMap { (y, line) ->
             line.withIndex().map { (x, c) ->
                 Point2D(x, y) to c
             }
         }.toMap()
 
-        val start = charMap.entries.find { (p, c) -> c == 'S' }!!.key
-        val end = charMap.entries.find { (p, c) -> c == 'E' }!!.key
+        val start = charMap.entries.find { (_, c) -> c == 'S' }!!.key
+        val end = charMap.entries.find { (_, c) -> c == 'E' }!!.key
 
-        val heightMap = charMap.entries.map { (p, c) ->
+        val heightMap = charMap.entries.associate { (p, c) ->
             val isStart: Boolean = c == 'S'
             val isEnd: Boolean = c == 'E'
 
@@ -129,11 +130,13 @@ class Day12 {
             }
             val height = heightChar - 'a'
             p to Square(p, height, isStart = isStart, isEnd = isEnd, null)
-        }.toMap()
+        }
         return Triple(heightMap, heightMap[start]!!, heightMap[end]!!)
     }
 }
 
+val climbingUpwards = { lhs: Square, rhs: Square -> lhs.height <= rhs.height + 1 }
+val climbingDownwards = { lhs: Square, rhs: Square -> rhs.height <= lhs.height +1 }
 data class Square(
     val position: Point2D,
     val height: Int,
@@ -143,15 +146,6 @@ data class Square(
     var scoreSoFar: Int  = Integer.MAX_VALUE,
     var visited: Boolean = false
 ) {
-    fun visited(): Boolean = previousSquare != null
-
-    fun heightChar() = 'a' + height
-
-    fun heuristic(end: Square) =
-        (25 - height) +
-                (this.position.x - end.position.x).absoluteValue +
-                (this.position.y - end.position.y).absoluteValue
-
     fun reconstructPath(): List<Point2D> {
         if (previousSquare == null) {
             return listOf(this.position)
@@ -160,17 +154,6 @@ data class Square(
         }
     }
 
-    fun reachableNeighbours(heightMap: Map<Point2D, Square>): List<Square> =
-        listOf(
-            Point2D(position.x + 1, position.y),
-            Point2D(position.x, position.y + 1),
-            Point2D(position.x - 1, position.y),
-            Point2D(position.x, position.y - 1)
-        )
-            .map { heightMap[it] }
-            .filterNotNull()
-            .filter { !it.visited }
-            .filter { it.height <= height + 1 }
 }
 
 val testInput =

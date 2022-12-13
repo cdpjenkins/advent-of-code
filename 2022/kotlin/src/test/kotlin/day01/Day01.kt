@@ -1,6 +1,7 @@
 package day01
 
 import FileUtil.readInputFileToList
+import ListUtils.splitByBlank
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -29,7 +30,7 @@ class Day01 {
 private fun sumOfTopThreeCalories(input: List<String>) = input.caloriesForEachElf().sorted().reversed().take(3).sum()
 
 private fun List<String>.caloriesForEachElf(): List<Int> {
-    val partitions = splitByBlank(this)
+    val partitions = this.splitByBlank()
 
     val calorieses = partitions.map {
         parseElf(it)
@@ -40,14 +41,6 @@ private fun List<String>.caloriesForEachElf(): List<Int> {
 private fun parseElf(it: List<String>): Int =
     it.map(Integer::parseInt)
         .sum()
-
-fun splitByBlank(input: List<String>): List<List<String>> =
-    if (input.isEmpty()) {
-        listOf()
-    } else {
-        val restInput = input.dropWhile { !it.isEmpty() }.drop(1)
-        listOf(input.takeWhile { !it.isEmpty() }) + splitByBlank(restInput)
-    }
 
 val testInput =
     """

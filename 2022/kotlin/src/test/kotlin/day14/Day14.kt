@@ -4,8 +4,10 @@ import FileUtil.readInputFileToList
 import Point2D
 import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
+@Disabled
 class Day14 {
     @Test
     internal fun `parses input correctly`() {
@@ -71,13 +73,39 @@ class Day14 {
         val gridSeq = generateSequence(grid) { dropSand(it) }
 
         val finalState = gridSeq.last()
-//        println(finalState.dump())
 
         val numGrains = finalState.squares.values.filter { it == 'o' }.size
 
         numGrains shouldBe 715
     }
 
+    @Test
+    internal fun `part 2 test input`() {
+        val input = testInput
+
+        val grid = parseInput(input).withFloor()
+
+        val gridSeq = generateSequence(grid) { dropSand(it) }
+
+        val finalState = gridSeq.last()
+        val numGrains = finalState.squares.values.filter { it == 'o' }.size
+
+        numGrains shouldBe 93
+    }
+
+    @Test
+    internal fun `part 2 real input`() {
+        val input = realInput
+
+        val grid = parseInput(input).withFloor()
+
+        val gridSeq = generateSequence(grid) { dropSand(it) }
+
+        val finalState = gridSeq.last()
+        val numGrains = finalState.squares.values.filter { it == 'o' }.size
+
+        numGrains shouldBe 93
+    }
 
     private fun dropSand(grid: Grid): Grid? {
         if (grid.squares[Point2D(500, 0)] == 'o') {
@@ -104,10 +132,17 @@ class Day14 {
 }
 
 data class Grid(val squares: Map<Point2D, Char>) {
-    private val minX = squares.keys.map { it.x }.min()
-    private val minY = squares.keys.map { it.y }.min()
-    private val maxX = squares.keys.map { it.x }.max()
-    private val maxY = squares.keys.map { it.y }.max()
+    internal val minX = squares.keys.map { it.x }.min()
+    internal val minY = squares.keys.map { it.y }.min()
+    internal val maxX = squares.keys.map { it.x }.max()
+    val maxY = squares.keys.map { it.y }.max()
+
+    fun withFloor(): Grid {
+        val floor = LineSegment(Point2D(minX - 500, maxY + 2), Point2D(maxX + 500, maxY + 2))
+        val toMutableMap = squares.toMutableMap()
+        floor.drawOn(toMutableMap)
+        return Grid(toMutableMap)
+    }
 
     fun dump(): String {
         val stringBuilder = StringBuilder()

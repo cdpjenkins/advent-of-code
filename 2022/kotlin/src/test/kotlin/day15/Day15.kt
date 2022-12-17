@@ -6,6 +6,7 @@ import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import kotlin.math.absoluteValue
 
 @Disabled
 class Day15 {
@@ -15,30 +16,27 @@ class Day15 {
 
         val sensorsAndBeacons = input.map { it.parseSensorAndBeacon() }
 
-        val squaresThatCantBeABeacon = sensorsAndBeacons.map { it.squaresThatCantBeABeacon() }
-            .fold(emptySet<Point2D>()) { acc, that -> acc.union(that) }
+        val result = sensorsAndBeacons
+            .map { it.numSquaresAtY(y = 10) }
+            .sum()
 
-        sensorsAndBeacons.forEach { println(it) }
-
-        println(squaresThatCantBeABeacon.dumpToString())
-
-        squaresThatCantBeABeacon.filter { it.y == 10 }.size shouldBe 26
+        result shouldBe 26
     }
 
+    @Disabled
     @Test
     internal fun `part 1 real input`() {
         val input = realInput
 
         val sensorsAndBeacons = input.map { it.parseSensorAndBeacon() }
 
-        val squaresThatCantBeABeacon = sensorsAndBeacons.map { it.squaresThatCantBeABeacon() }
-            .fold(emptySet<Point2D>()) { acc, that -> acc.union(that) }
+        val squaresThatCantBeABeacon =
+            sensorsAndBeacons
+                .map { it.squaresThatCantBeABeacon(y = 10) }
+                .map { it.size }
+                .sum()
 
-        sensorsAndBeacons.forEach { println(it) }
-
-        println(squaresThatCantBeABeacon.dumpToString())
-
-        squaresThatCantBeABeacon.filter { it.y == 10 }.size shouldBe 26
+        squaresThatCantBeABeacon shouldBe 26
     }
 }
 
@@ -60,21 +58,58 @@ private fun Set<Point2D>.dumpToString(): String {
 }
 
 data class SensorBeacon(val sensor: Point2D, val beacon: Point2D) {
+    val radius = sensor.manhattenDistanceTo(beacon)
+
+    fun numSquaresAtY(y: Int): Int {
+        val dy = (y - sensor.y).absoluteValue
+
+        val r = 1+ 2 * radius - (2 * dy)
+
+        if (r < 0) {
+            return 0
+        } else {
+            if (y == beacon.y) {
+                return r - 1
+            } else {
+                return r
+            }
+        }
+    }
+
     fun squaresThatCantBeABeacon(): Set<Point2D> {
-        val manhattenDistance = sensor.manhattenDistanceTo(beacon)
+        val minY = sensor.y - radius
+        val maxY = sensor.y + radius
+        val minX = sensor.x - radius
+        val maxX = sensor.x + radius
 
         val pointsWithinRange =
-            (sensor.x - manhattenDistance..sensor.x + manhattenDistance).flatMap { x ->
-                (sensor.y - manhattenDistance..sensor.y + manhattenDistance).map { y ->
-                    Point2D(x, y)
-                }
-            }
-                .filter { sensor.manhattenDistanceTo(it) <= manhattenDistance }
+            Point2D
+                .iterateRange(minX, maxX, minY, maxY)
+                .filter { squareIsWithinRange(it) }
                 .toSet()
         val pointsWithinRangeButNotTheBeacon = pointsWithinRange.minus(beacon)
 
         return pointsWithinRangeButNotTheBeacon
     }
+
+    fun squaresThatCantBeABeacon(y: Int): Set<Point2D> {
+        val minY = sensor.y - radius
+        val maxY = sensor.y + radius
+        val minX = sensor.x - radius
+        val maxX = sensor.x + radius
+
+        val pointsWithinRange =
+            (minX..maxX)
+                .map { x -> Point2D(x, y) }
+                .filter { squareIsWithinRange(it) }
+                .toSet()
+        val pointsWithinRangeButNotTheBeacon = pointsWithinRange.minus(beacon)
+
+        return pointsWithinRangeButNotTheBeacon
+
+    }
+
+    private fun squareIsWithinRange(it: Point2D) = sensor.manhattenDistanceTo(it) <= radius
 }
 
 private fun String.parseSensorAndBeacon(): SensorBeacon {

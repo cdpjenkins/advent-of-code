@@ -1,10 +1,12 @@
 package day17
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class Day17 {
 
 
+    @Disabled
     @Test
     internal fun `part 1 test input`() {
         val testInput = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"

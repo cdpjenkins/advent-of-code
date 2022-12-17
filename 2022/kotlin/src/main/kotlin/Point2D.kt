@@ -9,4 +9,17 @@ data class Point2D(
         val dy = (this.y - that.y).absoluteValue
         return dx + dy
     }
+
+    companion object {
+        fun iterateRange(
+            minX: Int,
+            maxX: Int,
+            minY: Int,
+            maxY: Int
+        ) = (minY..maxY).flatMap { y ->
+            (minX..maxX).map { x ->
+                Point2D(x, y)
+            }
+        }
+    }
 }

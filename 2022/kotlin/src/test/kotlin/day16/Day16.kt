@@ -2,56 +2,88 @@ package day16
 
 import FileUtil.readInputFileToList
 import RegexUtils.parseUsingRegex
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-@Disabled
 class Day16 {
 
+    @Disabled
     @Test
     internal fun `part 1 test input`() {
         val input = testInput
 
         val valves =
             parseInputToValves(input)
-        val state = State(valves.keys.first())
 
-        println(state)
+//        valves.toDigraph()
+
+        val state = State(valves.keys.first(), valvesOpen = valves.values.filter { it.flowRate == 0 }.map { it.id }.toSet())
 
         val walk = walk(state, valves, mutableMapOf<State, Int>())
 
         println(walk)
+
+        walk shouldBe 1651
     }
 
-    fun walk(state: State, valves: Map<String, Valve>, memoMeDo: MutableMap<State, Int>): Int {
-        if (state.secondsRemaining == 0) {
-            return state.pressureReleased
-        }
+    @Test
+    internal fun `part 1 real input`() {
+        val input = realInput
 
-        val memoisedAnswer = memoMeDo[state]
-        if (memoisedAnswer != null) {
-            return memoisedAnswer
-        }
+        val valves =
+            parseInputToValves(input)
+        val state = State(valves.keys.first(), valvesOpen = valves.values.filter { it.flowRate == 0 }.map { it.id }.toSet())
 
-        val stayStill = listOf(state.stayStill())
-        val openCurrentValve =
-            if (!(state.currentValve in state.valvesOpen)) listOf(state.openCurrentValve(valves))
-            else emptyList()
-        val moves = valves[state.currentValve]!!.tunnels.map { state.moveTo(it) }
+        println("max heap: ${Runtime.getRuntime().maxMemory()}")
 
-        val possibleScores = (stayStill + openCurrentValve + moves).map { walk(it, valves, memoMeDo) }
+        val walk = walk(state, valves, mutableMapOf<State, Int>())
 
-        val max = possibleScores.max()
-        memoMeDo[state] = max
+        println(walk)
 
-        println(memoMeDo.size)
-
-        return max
+        walk shouldBe 1651
     }
 }
 
-private fun Map<String, Valve>.toDot() {
+//private fun Map<String, Valve>.toDigraph() {
+//
+//}
+//
+//data class
 
+fun walk(state: State, valves: Map<String, Valve>, memoMeDo: MutableMap<State, Int>): Int {
+    if (state.secondsRemaining == 0) {
+        return state.flow
+    }
+
+    val memoisedAnswer = memoMeDo[state]
+    if (memoisedAnswer != null) {
+        return memoisedAnswer
+    }
+
+    val stayStill = listOf(state.stayStill())
+    val openCurrentValve =
+        if (!(state.currentValve in state.valvesOpen)) {
+            listOf(state.openCurrentValve(valves))
+        } else {
+            emptyList()
+        }
+    val moves = valves[state.currentValve]!!.tunnels.map { state.moveTo(it) }
+
+    val possibleScores = (stayStill + openCurrentValve + moves).map { walk(it, valves, memoMeDo) }
+
+    val max = possibleScores.max()
+    memoMeDo[state] = max
+
+    if (memoMeDo.size % 10000 == 0) {
+        println(memoMeDo.size)
+    }
+
+    return max
+}
+
+
+fun Map<String, Valve>.toDot() {
     val nodes = this.values.map {
         """  "${it.id}" [label="${it.id} ${it.flowRate}" fillcolor="${it.toColour()}" ]"""
     }.joinToString("\n")
@@ -78,11 +110,11 @@ private fun Valve.toColour(): String {
     return if (flowRate == 0) "#ffffff" else "#ffaaaa"
 }
 
-fun main() {
-    val vales = parseInputToValves(realInput)
-
-    vales.toDot()
-}
+//fun main() {
+//    val vales = parseInputToValves(realInput)
+//
+//    vales.toDot()
+//}
 
 private fun parseInputToValves(input: List<String>) = input
     .map { Valve.parse(it) }
@@ -92,13 +124,11 @@ private fun parseInputToValves(input: List<String>) = input
 data class State(
     val currentValve: String,
     val valvesOpen: Set<String> = emptySet(),
-    val flowRate: Int = 0,
-    val pressureReleased: Int = 0,
+    val flow: Int = 0,
     val secondsRemaining: Int = 30
 ) {
     fun stayStill(): State {
         return this.copy(
-            pressureReleased = pressureReleased + flowRate,
             secondsRemaining = secondsRemaining - 1,
         )
     }
@@ -106,8 +136,7 @@ data class State(
     fun openCurrentValve(valves: Map<String, Valve>): State {
         return this.copy(
             valvesOpen = valvesOpen + currentValve,
-            flowRate = flowRate + valves[currentValve]!!.flowRate,
-            pressureReleased = pressureReleased + flowRate,
+            flow = flow + valves[currentValve]!!.flowRate * (secondsRemaining - 1),
             secondsRemaining = secondsRemaining - 1
         )
     }
@@ -115,7 +144,6 @@ data class State(
     fun moveTo(toValve: String): State {
         return this.copy(
             currentValve = toValve,
-            pressureReleased = pressureReleased + flowRate,
             secondsRemaining = secondsRemaining - 1
         )
     }

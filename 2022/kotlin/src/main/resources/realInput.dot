@@ -1,0 +1,127 @@
+digraph ston {
+    node [style=filled]
+    "IK" [label="IK 6" fillcolor="#ffaaaa" ]
+    "YW" [label="YW 11" fillcolor="#ffaaaa" ]
+    "HD" [label="HD 0" fillcolor="#ffffff" ]
+    "LZ" [label="LZ 0" fillcolor="#ffffff" ]
+    "LO" [label="LO 0" fillcolor="#ffffff" ]
+    "PM" [label="PM 0" fillcolor="#ffffff" ]
+    "ME" [label="ME 0" fillcolor="#ffffff" ]
+    "CK" [label="CK 0" fillcolor="#ffffff" ]
+    "RM" [label="RM 0" fillcolor="#ffffff" ]
+    "MU" [label="MU 0" fillcolor="#ffffff" ]
+    "WK" [label="WK 0" fillcolor="#ffffff" ]
+    "MT" [label="MT 0" fillcolor="#ffffff" ]
+    "EN" [label="EN 0" fillcolor="#ffffff" ]
+    "AD" [label="AD 0" fillcolor="#ffffff" ]
+    "IT" [label="IT 8" fillcolor="#ffaaaa" ]
+    "JD" [label="JD 0" fillcolor="#ffffff" ]
+    "RY" [label="RY 0" fillcolor="#ffffff" ]
+    "FS" [label="FS 10" fillcolor="#ffaaaa" ]
+    "VT" [label="VT 0" fillcolor="#ffffff" ]
+    "WF" [label="WF 0" fillcolor="#ffffff" ]
+    "CH" [label="CH 0" fillcolor="#ffffff" ]
+    "PZ" [label="PZ 17" fillcolor="#ffaaaa" ]
+    "SS" [label="SS 18" fillcolor="#ffaaaa" ]
+    "MW" [label="MW 0" fillcolor="#ffffff" ]
+    "JE" [label="JE 16" fillcolor="#ffaaaa" ]
+    "AA" [label="AA 0" fillcolor="#ffffff" ]
+    "DS" [label="DS 21" fillcolor="#ffaaaa" ]
+    "QQ" [label="QQ 0" fillcolor="#ffffff" ]
+    "HG" [label="HG 20" fillcolor="#ffaaaa" ]
+    "ID" [label="ID 0" fillcolor="#ffffff" ]
+    "WL" [label="WL 0" fillcolor="#ffffff" ]
+    "OT" [label="OT 0" fillcolor="#ffffff" ]
+    "KI" [label="KI 14" fillcolor="#ffaaaa" ]
+    "ZZ" [label="ZZ 0" fillcolor="#ffffff" ]
+    "VD" [label="VD 0" fillcolor="#ffffff" ]
+    "PB" [label="PB 0" fillcolor="#ffffff" ]
+    "XU" [label="XU 0" fillcolor="#ffffff" ]
+    "CR" [label="CR 7" fillcolor="#ffaaaa" ]
+    "QF" [label="QF 0" fillcolor="#ffffff" ]
+    "JG" [label="JG 0" fillcolor="#ffffff" ]
+    "VP" [label="VP 0" fillcolor="#ffffff" ]
+    "HJ" [label="HJ 0" fillcolor="#ffffff" ]
+    "MD" [label="MD 12" fillcolor="#ffaaaa" ]
+    "SQ" [label="SQ 22" fillcolor="#ffaaaa" ]
+    "XY" [label="XY 0" fillcolor="#ffffff" ]
+    "VG" [label="VG 0" fillcolor="#ffffff" ]
+    "YB" [label="YB 13" fillcolor="#ffaaaa" ]
+    "LQ" [label="LQ 0" fillcolor="#ffffff" ]
+    "BX" [label="BX 0" fillcolor="#ffffff" ]
+    "KC" [label="KC 0" fillcolor="#ffffff" ]
+    "IP" [label="IP 0" fillcolor="#ffffff" ]
+    "SC" [label="SC 0" fillcolor="#ffffff" ]
+    "BJ" [label="BJ 0" fillcolor="#ffffff" ]
+    "NZ" [label="NZ 0" fillcolor="#ffffff" ]
+    "TX" [label="TX 3" fillcolor="#ffaaaa" ]
+    "EU" [label="EU 0" fillcolor="#ffffff" ]
+    "QL" [label="QL 0" fillcolor="#ffffff" ]
+    "CA" [label="CA 0" fillcolor="#ffffff" ]
+    "LL" [label="LL 0" fillcolor="#ffffff" ]
+    "UN" [label="UN 0" fillcolor="#ffffff" ]
+    "RI" [label="RI 0" fillcolor="#ffffff" ]
+    "NG" [label="NG 0" fillcolor="#ffffff" ]
+    "IK" -> {"EU" "XY" "AD" "SC" "CH"}
+    "YW" -> {"HD" "MW" "ID" "JD" "BJ"}
+    "HD" -> {"YW" "AA"}
+    "LZ" -> {"CR" "IT"}
+    "LO" -> {"CH" "YB"}
+    "PM" -> {"EN" "YB"}
+    "ME" -> {"VP" "TX"}
+    "CK" -> {"MD" "LL"}
+    "RM" -> {"TX" "AA"}
+    "MU" -> {"MD" "BX"}
+    "WK" -> {"HG" "IP"}
+    "MT" -> {"ZZ" "CR"}
+    "EN" -> {"JE" "PM"}
+    "AD" -> {"JE" "IK"}
+    "IT" -> {"RY" "LZ" "KC"}
+    "JD" -> {"MD" "YW"}
+    "RY" -> {"IT" "YB"}
+    "FS" -> {"QQ" "IP" "VG" "VP" "LL"}
+    "VT" -> {"TX" "MW"}
+    "WF" -> {"JE" "HJ"}
+    "CH" -> {"LO" "IK"}
+    "PZ" -> {"NZ" "HJ"}
+    "SS" -> {"BJ"}
+    "MW" -> {"YW" "VT"}
+    "JE" -> {"AD" "JG" "EN" "ZZ" "WF"}
+    "AA" -> {"LQ" "NG" "RM" "CA" "HD"}
+    "DS" -> {"PB"}
+    "QQ" -> {"FS" "ID"}
+    "HG" -> {"QF" "WK"}
+    "ID" -> {"QQ" "YW"}
+    "WL" -> {"KI" "EU"}
+    "OT" -> {"CR" "KI"}
+    "KI" -> {"OT" "UN" "WL" "XU" "KC"}
+    "ZZ" -> {"MT" "JE"}
+    "VD" -> {"CR" "RI"}
+    "PB" -> {"DS" "MD"}
+    "XU" -> {"KI" "SQ"}
+    "CR" -> {"OT" "MT" "XY" "VD" "LZ"}
+    "QF" -> {"HG" "NZ"}
+    "JG" -> {"JE" "QL"}
+    "VP" -> {"FS" "ME"}
+    "HJ" -> {"WF" "PZ"}
+    "MD" -> {"CK" "MU" "CA" "JD" "PB"}
+    "SQ" -> {"XU"}
+    "XY" -> {"CR" "IK"}
+    "VG" -> {"LQ" "FS"}
+    "YB" -> {"RI" "RY" "LO" "UN" "PM"}
+    "LQ" -> {"AA" "VG"}
+    "BX" -> {"MU" "TX"}
+    "KC" -> {"IT" "KI"}
+    "IP" -> {"FS" "WK"}
+    "SC" -> {"NG" "IK"}
+    "BJ" -> {"SS" "YW"}
+    "NZ" -> {"QF" "PZ"}
+    "TX" -> {"RM" "QL" "BX" "ME" "VT"}
+    "EU" -> {"WL" "IK"}
+    "QL" -> {"TX" "JG"}
+    "CA" -> {"MD" "AA"}
+    "LL" -> {"FS" "CK"}
+    "UN" -> {"KI" "YB"}
+    "RI" -> {"YB" "VD"}
+    "NG" -> {"SC" "AA"}
+}

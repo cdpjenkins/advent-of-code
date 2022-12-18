@@ -33,35 +33,15 @@ class Day18 {
 
     @Test
     internal fun `part 2 test input`() {
-        val input = testInput
-
-        val cubes = input.map { it.parse() }.toSet()
-
-        println("volume: ${volume(cubes)}")
-
-
-        val minX = cubes.map { it.x }.min() - 2
-        val minY = cubes.map { it.y }.min() - 2
-        val minZ = cubes.map { it.z }.min() - 2
-        val maxX = cubes.map { it.x }.max() + 2
-        val maxY = cubes.map { it.y }.max() + 2
-        val maxZ = cubes.map { it.z }.max() + 2
-        val pointsOutsideDroplet =
-            Point3D(minX, minY, minZ)
-                .findConnectedComponent(cubes, minX, minY, minZ, maxX, maxY, maxZ)
-
-        val result =
-            cubes
-                .flatMap { it.openFaces(cubes) }
-                .filter { (it in pointsOutsideDroplet) }
-
-        result.size shouldBe 58
+        numExterniorOpenFacesFor(testInput) shouldBe 58
     }
 
     @Test
     internal fun `part 2 real input`() {
-        val input = realInput
+        numExterniorOpenFacesFor(realInput) shouldBe 2106
+    }
 
+    private fun numExterniorOpenFacesFor(input: List<String>): Int {
         val cubes = input.map { it.parse() }.toSet()
 
         val minX = cubes.map { it.x }.min() - 2
@@ -72,29 +52,14 @@ class Day18 {
         val maxZ = cubes.map { it.z }.max() + 2
         val pointsOutsideDroplet =
             Point3D(minX, minY, minZ)
-                .findConnectedComponent(cubes, minX, minY, minZ, maxX, maxY, maxZ)
-
-        println("num points outside: ${pointsOutsideDroplet.size}")
+                .findConnectedComponentUsingBFS(cubes, minX, minY, minZ, maxX, maxY, maxZ)
 
         val result =
             cubes
                 .flatMap { it.openFaces(cubes) }
                 .filter { (it in pointsOutsideDroplet) }
 
-        result.size shouldBe 2106
-    }
-
-    private fun volume(cubes: Set<Point3D>): Int {
-        val minX = cubes.map { it.x }.min() - 2
-        val minY = cubes.map { it.y }.min() - 2
-        val minZ = cubes.map { it.z }.min() - 2
-        val maxX = cubes.map { it.x }.max() + 2
-        val maxY = cubes.map { it.y }.max() + 2
-        val maxZ = cubes.map { it.z }.max() + 2
-
-        val volume = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1)
-
-        return volume
+        return result.size
     }
 
     private fun numOpenFacesFor(input: List<String>): Int {
@@ -106,7 +71,7 @@ class Day18 {
     }
 }
 
-private fun Point3D.findConnectedComponent(
+private fun Point3D.findConnectedComponentUsingBFS(
     cubes: Set<Point3D>,
     minX: Int,
     minY: Int,

@@ -38,19 +38,54 @@ class Day20 {
 
         mixedListStour.grooveCoordinates() shouldBe 2622
     }
+
+    @Test
+    internal fun `part 2 test input`() {
+        val input = testInput
+
+        val numbers = input.parse()
+            .map { it.times(811589153) }
+
+        val ston = generateSequence(numbers) { it.mix() }.drop(10).first()
+
+        val result =
+            ston.grooveCoordinates()
+
+        result shouldBe 1623178306
+    }
+
+    @Test
+    internal fun `part 2 real input`() {
+        val input = realInput
+
+        val numbers = input.parse()
+            .map { it.times(811589153) }
+
+        val ston = generateSequence(numbers) { it.mix() }.drop(10).first()
+
+        val result =
+            ston.grooveCoordinates()
+
+        result shouldBe 1538773034088
+    }
 }
 
 private fun List<String>.parse() =
     mapIndexed { i, s ->
-        IndexedNumber(i, s.toInt())
+        IndexedNumber(i, s.toLong())
     }
 
-private fun List<IndexedNumber>.grooveCoordinates(): Int {
-    val indexOf0 = this.indexOfFirst { it.number == 0 }
+private fun List<IndexedNumber>.grooveCoordinates(): Long {
+    val indexOf0 = this.indexOfFirst { it.number == 0L }
 
     val n1000 = this[(indexOf0 + 1000) % this.size].number
     val n2000 = this[(indexOf0 + 2000) % this.size].number
     val n3000 = this[(indexOf0 + 3000) % this.size].number
+
+    println(n1000)
+    println(n2000)
+    println(n3000)
+
     return n1000 + n2000 + n3000
 }
 
@@ -75,7 +110,11 @@ private fun MutableList<IndexedNumber>.mix(i: Int) {
     this.add(insertAtIndex, removedElement)
 }
 
-data class IndexedNumber(val index: Int, val number: Int)
+data class IndexedNumber(val index: Int, val number: Long) {
+    fun times(multiplicand: Long): IndexedNumber {
+        return this.copy(number = number * multiplicand)
+    }
+}
 
 val testInput =
     """

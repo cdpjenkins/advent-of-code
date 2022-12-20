@@ -5,68 +5,63 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class Day20 {
-
     @Test
     internal fun `should mix list part 1 test input`() {
         val input = testInput
 
-        val numbers = input.map(String::toInt)
+        val mixedList =
+            input.parse()
+                .mix()
 
-        val mixedListStour = numbers.mix()
-
-        mixedListStour shouldBe listOf(1, 2, -3, 4, 0, 3, -2)
+        mixedList.map { it.number } shouldBe listOf(1, 2, -3, 4, 0, 3, -2)
     }
 
     @Test
     internal fun `part 1 test input`() {
         val input = testInput
 
-        val numbers = input.map(String::toInt)
+        val result =
+            input.parse()
+            .   mix()
+                .grooveCoordinates()
 
-        val mixedListStour = numbers.mix()
-
-        mixedListStour.grooveCoordinates() shouldBe 3
+        result shouldBe 3
     }
-
-
 
     @Test
     internal fun `part 1 real input`() {
         val input = realInput
 
-        val numbers = input.map(String::toInt)
+        val numbers = input.parse()
 
         val mixedListStour = numbers.mix()
 
-        mixedListStour.grooveCoordinates() shouldBe 3
+        mixedListStour.grooveCoordinates() shouldBe 2622
     }
 }
 
-private fun List<Int>.grooveCoordinates(): Int {
-    val indexOf0 = this.indexOfFirst { it == 0 }
+private fun List<String>.parse() =
+    mapIndexed { i, s ->
+        IndexedNumber(i, s.toInt())
+    }
 
-    val n1000 = this[(indexOf0 + 1000) % this.size]
-    val n2000 = this[(indexOf0 + 2000) % this.size]
-    val n3000 = this[(indexOf0 + 3000) % this.size]
+private fun List<IndexedNumber>.grooveCoordinates(): Int {
+    val indexOf0 = this.indexOfFirst { it.number == 0 }
+
+    val n1000 = this[(indexOf0 + 1000) % this.size].number
+    val n2000 = this[(indexOf0 + 2000) % this.size].number
+    val n3000 = this[(indexOf0 + 3000) % this.size].number
     return n1000 + n2000 + n3000
 }
 
-private fun List<Int>.mix(): List<Int> {
-    val thisList =
-        this
-            .mapIndexed { i, n -> IndexedNumber(i, n) }
-            .toMutableList()
+private fun List<IndexedNumber>.mix(): List<IndexedNumber> {
+    val thisList = this.toMutableList()
 
     (0..this.size-1).forEach { i ->
         thisList.mix(i)
     }
 
-    val newListHere =
-        thisList.mapIndexed() { i, number ->
-            IndexedNumber(i, number.number)
-        }
-
-    return newListHere.map { it.number }
+    return thisList.toList()
 }
 
 private fun MutableList<IndexedNumber>.mix(i: Int) {

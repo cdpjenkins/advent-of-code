@@ -2,6 +2,7 @@ package day07
 
 import FileUtil.readInputFileToList
 import RegexUtils.parseUsingRegex
+import StringUtils.indentBy
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import kotlin.IllegalArgumentException
@@ -98,8 +99,6 @@ sealed interface Inode {
         return listOf(this) + children.flatMap { it.traverse() }
     }
 }
-
-fun indentBy(indent: Int) = (1..indent).map { " " }.joinToString("")
 
 data class DirectoryNode(override val name: String, override val parent: DirectoryNode?) : Inode {
     override var children: MutableList<Inode> = mutableListOf()

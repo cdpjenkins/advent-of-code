@@ -10,6 +10,8 @@ data class Point2D(
         return dx + dy
     }
 
+    operator fun plus(s: Vector2D) = Point2D(this.x + s.dx, this.y + s.dy)
+
     companion object {
         fun iterateRange(
             minX: Int,
@@ -23,3 +25,15 @@ data class Point2D(
         }
     }
 }
+
+data class Vector2D(
+    val dx: Int,
+    val dy: Int
+)
+
+fun parseBoard(input: List<String>) =
+    input.flatMapIndexed { y, line ->
+        line.mapIndexed { x, c ->
+            Point2D(x, y) to c
+        }
+    }.toMap()

@@ -1,15 +1,18 @@
 import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) {
+
+    val target = 156
+
     val elapsed = measureTimeMillis {
         val possibleExpressions =
             solve(
-                numbers(1, 2, 3, 4, 5, 10),
-                target = 62
+                numbers(2, 3, 7, 11, 15, 25),
+                target
             )
 
         possibleExpressions
-            .filter { it.value == 62 }
+            .filter { it.value == target }
             .forEach {
                 println("${it.value} $it")
             }

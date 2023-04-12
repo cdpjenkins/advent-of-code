@@ -1,17 +1,24 @@
-
+import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) {
-    val possibleExpressions = solve(
-        setOf(1, 2, 3, 4, 5, 10).map { NumberExpression(it) },
-        62
-    )
+    val elapsed = measureTimeMillis {
+        val possibleExpressions =
+            solve(
+                numbers(1, 2, 3, 4, 5, 10),
+                target = 62
+            )
 
-    possibleExpressions
-        .filter { it.value == 62 }
-        .forEach {
-        println("${it.value} $it")
+        possibleExpressions
+            .filter { it.value == 62 }
+            .forEach {
+                println("${it.value} $it")
+            }
     }
+
+    println("Time taken: ${elapsed}ms")
 }
+
+private fun numbers(vararg nums: Int) = nums.map { NumberExpression(it) }
 
 fun solve(numbers: List<Expression>, target: Int): List<Expression> {
     if (numbers.size == 0) {

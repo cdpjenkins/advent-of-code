@@ -5,7 +5,7 @@
 #include "util.hpp"
 
 std::vector<std::string> read_input_file(const char* filename) {
-    std::ifstream input_stream{filename};
+    std::ifstream input_stream(std::string{"../../../advent-of-code-input/2022/"} + filename);
     if (!input_stream) {
         std::cerr << "Failed to open " << filename[1] << std::endl;
         throw std::runtime_error("Failed to open " + std::string(filename));

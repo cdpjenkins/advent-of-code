@@ -7,13 +7,13 @@ AS=$(PREFIX)as
 
 EXECUTABLE=aoc2023.tos
 
-all: $(EXECUTABLE) $(TEST_EXECUTABLE)
-
-$(EXECUTABLE): main.o day01.o hello.o
-	${CXX} ${CXXFLAGS} main.o day01.o hello.o -o $(EXECUTABLE) -lgcc
+all: $(EXECUTABLE)
 
 %.o : ../src/%.cpp ../src/*.hpp
 	${CXX} -DWAIT_FOR_KEYPRESS_BEFORE_QUIT -c $(CXXFLAGS) $< -o $@
+
+$(EXECUTABLE): main.o day01.o hello.o util.o
+	${CXX} ${CXXFLAGS} -o $(EXECUTABLE) $^ -lgcc
 
 clean:
 	rm -f *.o $(EXECUTABLE)

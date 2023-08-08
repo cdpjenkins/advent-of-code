@@ -6,39 +6,7 @@
 
 #include "day01.hpp"
 
-std::vector<std::string> read_input_file(char *const *argv) {
-    std::ifstream input_stream{argv[1]};
-    if (!input_stream) {
-        std::cerr << "Failed to open " << argv[1] << std::endl;
-        throw std::runtime_error("Failed to open " + std::string(argv[1]));
-    }
-
-    std::vector<std::string> lines;
-    std::string str;
-    while (std::getline(input_stream, str)) {
-        lines.push_back(str);
-    }
-    return lines;
-}
-
-int day01_part1_elf_with_most_calories() {
-    std::vector<std::string> input{
-            "1000",
-            "2000",
-            "3000",
-            "",
-            "4000",
-            "",
-            "5000",
-            "6000",
-            "",
-            "7000",
-            "8000",
-            "9000",
-            "",
-            "10000"
-    };
-
+int day01_part1_elf_with_most_calories(const std::vector<std::string> &input) {
     std::vector<int> elves{};
     int calories = 0;
     for (auto& line : input) {

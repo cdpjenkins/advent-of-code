@@ -1,0 +1,3 @@
+# Advent of Code 2022 in C++
+I managed a little over 2/3 of Advent of Code 2022 in Kotlin before it got too hard. Let's see how much I can do as I
+try to strengthen my C++ skills...

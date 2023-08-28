@@ -55,7 +55,7 @@ fun solve(numbers: List<Expression>, target: Int): List<Expression> {
 enum class Operator(val symbol: String) {
     PLUS("+") {
         override fun apply(lhs: Int, rhs: Int) = lhs + rhs
-        override fun isValid(lhs: Expression, rhs: Expression) = true
+        override fun isValid(lhs: Expression, rhs: Expression) = lhs.value <= rhs.value
     },
     MINUS("-") {
         override fun apply(lhs: Int, rhs: Int) = lhs - rhs
@@ -63,7 +63,7 @@ enum class Operator(val symbol: String) {
     },
     MULTIPLY("*") {
         override fun apply(lhs: Int, rhs: Int) = lhs * rhs
-        override fun isValid(lhs: Expression, rhs: Expression) = true
+        override fun isValid(lhs: Expression, rhs: Expression) = lhs.value <= rhs.value
     },
     DIVIDE("/") {
         override fun apply(lhs: Int, rhs: Int) = lhs / rhs

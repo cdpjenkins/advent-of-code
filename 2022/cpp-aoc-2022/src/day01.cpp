@@ -1,27 +1,30 @@
-#include <algorithm>
-#include <string>
 #include <vector>
+#include <string>
+#include <ranges>
+#include <algorithm>
 #include <numeric>
+#include <cstdint>
+#include <iostream>
 
 #include "day01.hpp"
 
+
 std::vector<int> parse_elves(const std::vector<std::string> &input) {
-    std::vector<int> elves{};
-    int calories = 0;
-    for (auto& line : input) {
-        if (line.empty()) {
-            elves.push_back(calories);
-            calories = 0;
-        } else {
-            int c = std::stoi(line);
-            calories += c;
-        }
-    }
-    if (calories != 0) {
-        elves.push_back(calories);
+    using namespace std::string_literals;
+
+    auto elves = input
+                 | std::views::lazy_split(""s)
+                 | std::views::transform([](const auto& elf) -> uint64_t { // sum up the calories for each elf: range{uint64_t}
+        auto to_unsigned = [](const auto& in) { return std::stoull(in); };
+        auto rng = elf | std::views::transform(to_unsigned) | std::views::common; // range{string} -> range{uint64_t}
+        return std::reduce(rng.begin(), rng.end()); // range{uint64_t} -> uint64_t
+    });
+
+    for (const auto &item: elves) {
+        std::cout << item << std::endl;
     }
 
-    return elves;
+    return (std::vector<int>) {elves.begin(), elves.end()};
 }
 
 int day01_part1_elf_with_most_calories(const std::vector<std::string> &input) {

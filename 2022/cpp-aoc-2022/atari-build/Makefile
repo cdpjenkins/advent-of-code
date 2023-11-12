@@ -1,6 +1,6 @@
-PREFIX=~/opt/cross-mint-12.2.0-thorsten-20230112/bin/m68k-atari-mint-
+PREFIX=~/opt/cross-mint-13.2.0-thorsten-20230801/bin/m68k-atari-mint-
 
-CXXFLAGS=-O3 -m68000
+CXXFLAGS=-O3 -m68000 --std=c++20
 CC=$(PREFIX)gcc
 CXX=$(PREFIX)g++
 AS=$(PREFIX)as

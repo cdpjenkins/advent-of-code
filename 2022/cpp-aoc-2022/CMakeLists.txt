@@ -17,3 +17,7 @@ add_executable(aoc_doctest
         test/test.cpp
         test/day01_test.cpp
 )
+
+add_executable(scratch
+        src/scratch.cpp
+)

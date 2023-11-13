@@ -20,10 +20,6 @@ std::vector<int> parse_elves(const std::vector<std::string> &input) {
         return std::reduce(rng.begin(), rng.end()); // range{uint64_t} -> uint64_t
     });
 
-    for (const auto &item: elves) {
-        std::cout << item << std::endl;
-    }
-
     return (std::vector<int>) {elves.begin(), elves.end()};
 }
 

@@ -1,5 +1,7 @@
 #include "day02.hpp"
 
+#include <numeric>
+#include <ranges>
 #include <stdexcept>
 
 #include "util.hpp"
@@ -41,19 +43,11 @@ static int score_following_result(const std::string& input) {
 }
 
 int day02_part1_rock_paper_scissors_following_choice(const std::vector<std::string> &input) {
-    int total_score = 0;
-    for (auto& line : input) {
-        total_score += score_following_choice(line);
-    }
-
-    return total_score;
+    auto scores = input | std::views::transform(score_following_choice);
+    return std::reduce(scores.begin(), scores.end());
 }
 
 int day02_part2_rock_paper_scissors_following_result(const std::vector<std::string> &input) {
-    int total_score = 0;
-    for (auto& line : input) {
-        total_score += score_following_result(line);
-    }
-
-    return total_score;
+    auto scores = input | std::views::transform(score_following_result);
+    return std::reduce(scores.begin(), scores.end());
 }

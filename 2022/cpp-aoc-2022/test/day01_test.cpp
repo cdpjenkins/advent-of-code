@@ -34,10 +34,6 @@ TEST_CASE("Day 01 part 2 with test data - Three elves with most calories") {
     CHECK(day01_part2_three_elves_with_most_calories(day01_test_input) == 45000);
 }
 
-TEST_CASE("Day 01 part 2 with test data - Three elves with most calories") {
-    CHECK(day01_part2_three_elves_with_most_calories(day01_test_input) == 45000);
-}
-
 TEST_CASE("Day 01 part 2 with real data - Three elves with most calories") {
     CHECK(day01_part2_three_elves_with_most_calories(read_input_file("day01.txt")) == 199628);
 }

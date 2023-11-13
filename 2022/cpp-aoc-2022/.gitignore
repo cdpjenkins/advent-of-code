@@ -4,6 +4,7 @@ cmake-build-debug
 cmake-build-debug-coverage
 cmake-build-release
 cmake-build/
+build/
 /atari-build/cpp-sudoku
 /atari-build/*.o
 /atari-build/cpp-sudoku.ttp

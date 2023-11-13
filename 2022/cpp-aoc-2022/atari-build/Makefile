@@ -12,7 +12,7 @@ all: $(EXECUTABLE)
 %.o : ../src/%.cpp ../src/*.hpp
 	${CXX} -DWAIT_FOR_KEYPRESS_BEFORE_QUIT -c $(CXXFLAGS) $< -o $@
 
-$(EXECUTABLE): main.o day01.o hello.o util.o
+$(EXECUTABLE): main.o day01.o day02.o hello.o util.o
 	${CXX} ${CXXFLAGS} -o $(EXECUTABLE) $^ -lgcc
 
 clean:

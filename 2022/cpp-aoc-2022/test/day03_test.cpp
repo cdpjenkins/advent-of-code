@@ -22,6 +22,14 @@ TEST_CASE("Day 03 part 1 with real data") {
     CHECK(day03_part1(read_input_file("day03.txt")) == 7766);
 }
 
+TEST_CASE("Day 03 part 2 with test data") {
+    CHECK(day03_part2(day03_test_input) == 70);
+}
+
+TEST_CASE("Day 03 part 2 with real data") {
+    CHECK(day03_part2(read_input_file("day03.txt")) == 2415);
+}
+
 TEST_CASE("Values of selection of items are correct") {
     CHECK(value_of('a') == 1);
     CHECK(value_of('z') == 26);

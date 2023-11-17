@@ -45,7 +45,18 @@ int day03_part1(const std::vector<std::string> &input) {
 }
 
 int day03_part2(const std::vector<std::string> &input) {
-    return -1;
+    int accumulator = 0;
+
+    for (int i = 0; i < input.size(); i += 3) {
+        auto elf1_contents = contents(input[i]);
+        auto elf2_contents = contents(input[i+1]);
+        auto elf3_contents = contents(input[i+2]);
+
+        auto shared_contents = elf1_contents & elf2_contents & elf3_contents;
+
+        auto value_of_common = std::countr_zero(shared_contents);
+        accumulator += value_of_common;
+    }
+
+    return accumulator;
 }
-
-

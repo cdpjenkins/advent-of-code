@@ -1,6 +1,7 @@
 #include "day04.hpp"
 
 #include <iostream>
+#include <ranges>
 #include <sstream>
 
 #include "util.hpp"
@@ -21,13 +22,20 @@ public:
         return s;
     }
 
+    [[nodiscard]]
     bool fully_contains(const Assignment& that) const {
         return this->start <= that.start && this->end >= that.end;
     }
+
+    [[nodiscard]]
+    bool overlaps_width(const Assignment& that) const {
+        return (this->start <= that.start && this->end >= that.start)
+            || (this-> start <= that.end && this->end >= that.end)
+            || that.fully_contains(*this);
+    }
 };
 
-int day04_part1(const std::vector<std::string> &input) {
-
+std::vector<std::pair<Assignment, Assignment>> parse_assignments(const std::vector<std::string> &input) {
     std::vector<std::pair<Assignment, Assignment>> v;
 
     for (const auto &item: input) {
@@ -42,16 +50,24 @@ int day04_part1(const std::vector<std::string> &input) {
         v.emplace_back(ass1, ass2);
     }
 
-    int count = 0;
-    for (const auto &item: v) {
-        if (item.first.fully_contains(item.second) || item.second.fully_contains(item.first)) {
-            count++;
-        }
-    }
+    return v;
+}
 
-    return count;
+int day04_part1(const std::vector<std::string> &input) {
+    std::vector<std::pair<Assignment, Assignment>> v = parse_assignments(input);
+
+    return static_cast<int>(
+            std::ranges::count_if(v, [](auto &item) {
+                return item.first.fully_contains(item.second) ||
+                       item.second.fully_contains(item.first);
+            }));
 }
 
 int day04_part2(const std::vector<std::string> &input) {
-    return -1;
+    std::vector<std::pair<Assignment, Assignment>> v = parse_assignments(input);
+
+    return static_cast<int>(
+            std::ranges::count_if(v, [](auto &item) {
+                return item.first.overlaps_width(item.second);
+            }));
 }

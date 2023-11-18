@@ -22,10 +22,10 @@ TEST_CASE("Day 04 part 1 with real data") {
     CHECK(day04_part1(read_input_file("day04.txt")) == 511);
 }
 
-//TEST_CASE("Day 03 part 2 with test data") {
-//    CHECK(day04_part2(day04_test_input) == -1);
-//}
-//
-//TEST_CASE("Day 03 part 2 with real data") {
-//    CHECK(day04_part2(read_input_file("day04.txt")) == -1);
-//}
+TEST_CASE("Day 04 part 2 with test data") {
+    CHECK(day04_part2(day04_test_input) == 4);
+}
+
+TEST_CASE("Day 04 part 2 with real data") {
+    CHECK(day04_part2(read_input_file("day04.txt")) == 821);
+}

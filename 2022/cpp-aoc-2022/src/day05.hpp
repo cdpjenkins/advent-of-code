@@ -1,0 +1,10 @@
+#ifndef CPP_AOC_2022_DAY02_HPP
+#define CPP_AOC_2022_DAY02_HPP
+
+#include <string>
+#include <vector>
+
+std::string day05_part1(std::istream &input);
+std::string day05_part2(std::istream &input);
+
+#endif //CPP_AOC_2022_DAY02_HPP

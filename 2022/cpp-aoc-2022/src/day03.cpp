@@ -1,6 +1,7 @@
-#include "day02.hpp"
+#include "day03.hpp"
 
 #include <bit>
+#include <stdexcept>
 
 #include "util.hpp"
 
@@ -14,6 +15,8 @@ uint64_t value_of(char c) {
         return 1 + c - 'a';
     } else if ('A' <= c && c <= 'Z') {
         return 27 + c - 'A';
+    } else {
+        throw std::runtime_error("arghghgh " + std::string{c});
     }
 }
 

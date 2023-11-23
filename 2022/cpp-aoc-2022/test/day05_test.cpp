@@ -26,12 +26,11 @@ TEST_CASE("Day 05 part 1 with real data") {
     CHECK(day05_part1(input) == "HNSNMTLHQ");
 }
 
-//
-
-//TEST_CASE("Day 04 part 2 with test data") {
-////    CHECK(day04_part2(day04_test_input) == 4);
+//TEST_CASE("Day 05 part 2 with test data") {
+//    CHECK(day05_part2(s) == "poopoo");
 //}
 //
-//TEST_CASE("Day 04 part 2 with real data") {
-////    CHECK(day04_part2(read_input_file("day04.txt")) == 821);
+//TEST_CASE("Day 05 part 2 with real data") {
+//    std::ifstream input{"../../../advent-of-code-input/2022/day05.txt"};
+//    CHECK(day05_part2(input) == "pooypants");
 //}

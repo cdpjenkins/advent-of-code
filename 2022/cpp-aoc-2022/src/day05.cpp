@@ -11,7 +11,7 @@ struct Command {
     int from;
     int to;
 
-    void execute(std::vector<std::vector<char>>& stacks) const {
+    void execute_on_cratemover_9000(std::vector<std::vector<char>>& stacks) const {
         for (int i = 0; i < num; i++) {
             char c = stacks[from].back();
             stacks[from].pop_back();
@@ -31,7 +31,7 @@ struct Command {
     }
 };
 
-std::string day05_part1(std::istream &input) {
+static std::vector<std::vector<char>> parse_stacks(std::istream &input) {
     std::string line;
     std::vector<std::vector<char>> stacks;
     while (std::getline(input, line)) {
@@ -52,24 +52,34 @@ std::string day05_part1(std::istream &input) {
         }
     }
 
-    std::cout << "thar stacks" << std::endl;
     for (auto &stack: stacks) {
         std::reverse(stack.begin(), stack.end());
 
-        for (const auto &item: stack) {
-            std::cout << item;
-        }
-        std::cout << std::endl;
+//        for (const auto &item: stack) {
+//            std::cout << item;
+//        }
+//        std::cout << std::endl;
     }
 
     // consume blank line
     std::getline(input, line);
 
+    return stacks;
+}
+
+static std::vector<Command> parse_commands(std::istream &input) {
     std::vector<Command> commands;
     std::ranges::copy(std::views::istream<Command>(input), std::back_inserter(commands));
 
+    return commands;
+}
+
+std::string day05_part1(std::istream &input) {
+    std::vector<std::vector<char>> stacks{parse_stacks(input)};
+    std::vector<Command> commands{parse_commands(input)};
+
     for (const auto &command: commands) {
-        command.execute(stacks);
+        command.execute_on_cratemover_9000(stacks);
     }
 
     std::string result;
@@ -77,19 +87,9 @@ std::string day05_part1(std::istream &input) {
         result += stack.back();
     }
 
-    for (auto &stack: stacks) {
-        std::reverse(stack.begin(), stack.end());
-
-        for (const auto &item: stack) {
-            std::cout << item;
-        }
-        std::cout << std::endl;
-    }
-
-
     return result;
 }
 
-std::string day05_part2(const std::istream &input) {
+std::string day05_part2(std::istream &input) {
     return "cheese";
 }

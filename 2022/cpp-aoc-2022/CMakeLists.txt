@@ -13,6 +13,7 @@ add_executable(aoc
         src/day04.cpp
         src/day05.cpp
         src/day06.cpp
+        src/day07.cpp
 )
 
 add_executable(aoc_doctest
@@ -31,6 +32,8 @@ add_executable(aoc_doctest
         test/day04_test.cpp
         test/day05_test.cpp
         test/day06_test.cpp
+        test/day07_test.cpp
+        src/day07.cpp
 )
 
 add_executable(scratch

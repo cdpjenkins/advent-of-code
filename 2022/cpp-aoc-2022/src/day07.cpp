@@ -2,55 +2,67 @@
 
 #include <iostream>
 
-struct Command {
-    enum class Type { CD, LS };
+namespace Day07 {
 
-    friend std::istream& operator>>(std::istream& stream, Command& command);
+    struct Command {
+        enum class Type { NONE, CD, LS };
 
-    Type type;
-    std::string target_dir;
-};
+        friend std::istream& operator>>(std::istream& stream, Command& command);
 
-std::istream& operator>>(std::istream& stream, Command& command) {
-    char _;
-    std::string command_string;
-
-    stream >> _ >> command_string;
-
-    std::cout << _ << " " << command_string << std::endl;;
-
-    if (command_string == "cd") {
+        Type type{Type::NONE};
         std::string target_dir;
+        std::vector<std::string> file_sizes;
+    };
 
-        stream >> target_dir;
+    void skip_whitespace(std::istream& stream) {
+        while (std::isspace(stream.peek())) stream.get();
+    }
 
-        command.type = Command::Type::CD;
-        command.target_dir = target_dir;
-    } else if (command_string == "ls") {
-        command.type = Command::Type::LS;
+    std::istream& operator>>(std::istream& stream, Command& command) {
+        char _;
+        std::string command_string;
 
-        while (stream.peek() != '$') {
-            std::string ston;
-            std::getline(stream, ston);
+        stream >> _ >> command_string;
 
-            std::cout << ston << std::endl;
+        std::cout << _ << " " << command_string << std::endl;;
+
+        if (command_string == "cd") {
+            std::string target_dir;
+
+            stream >> target_dir;
+
+            skip_whitespace(stream);
+
+            command.type = Command::Type::CD;
+            command.target_dir = target_dir;
+        } else if (command_string == "ls") {
+            command.type = Command::Type::LS;
+            skip_whitespace(stream);
+
+            while (stream.peek() != '$' && !stream.eof()) {
+                std::string ston;
+                std::getline(stream, ston);
+
+                std::cout << ston << std::endl;
+            }
         }
+
+        return stream;
     }
 
-    return stream;
-}
+    int part1(std::istream& input) {
 
+        while (input.peek() == '$') {
+            Command command;
+            input >> command;
+        }
 
-int day07_part1(std::istream& input) {
+        std::cout << "peek: " << input.peek() << std::endl;
 
-    while (input.peek() == '$') {
-        Command command;
-        input >> command;
+        return 123;
     }
 
-    return 123;
-}
-
-int day07_part2(std::string input) {
-    return 1234;
+    int part2(std::string input) {
+        return 1234;
+    }
 }

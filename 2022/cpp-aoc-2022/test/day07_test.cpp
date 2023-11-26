@@ -37,7 +37,7 @@ $ ls
 
 TEST_CASE("Day 07 part 1 with test data") {
     std::stringstream input{day_07_test_input};
-    CHECK(day07_part1(input) == -1);
+    CHECK(Day07::part1(input) == -1);
 }
 
 TEST_CASE("Day 07 part 1 with real data") {
@@ -49,5 +49,5 @@ TEST_CASE("Day 07 part 2 with test data") {
 }
 
 TEST_CASE("Day 07 part 2 with real data") {
-    CHECK(day07_part2(read_input_file("day07.txt")[0]) == -1);
+    CHECK(Day07::part2(read_input_file("day07.txt")[0]) == -1);
 }

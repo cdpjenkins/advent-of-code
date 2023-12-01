@@ -27,15 +27,14 @@ class Day01 {
 
     @Test
     fun `correctly maps overlapping numbers`() {
-        substituteDigitsForWords("ppkeightwo5ggthreet") shouldBe "ppk825gg3t"
-        substituteDigitsForWords("eightwothree") shouldBe "823"
+        "ppkeightwo5ggthreet".substituteDigitsForWords() shouldBe "ppk825gg3t"
+        "eightwothree".substituteDigitsForWords() shouldBe "823"
     }
 }
 
 // What a massive hack!
-private fun substituteDigitsForWords(line: String) =
-    line
-        .replace("oneight", "18")
+private fun String.substituteDigitsForWords() =
+    replace("oneight", "18")
         .replace("twone", "21")
         .replace("threeight", "38")
         .replace("fiveeight", "58")
@@ -53,41 +52,20 @@ private fun substituteDigitsForWords(line: String) =
         .replace("eight", "8")
         .replace("nine", "9")
 
-private fun day1Part1SumFirstAndLastDigits(tharInput: List<String>): Int {
-    val result = tharInput.map { line ->
-        val digits = line.filter { it.isDigit() }
-        val firstDigit = digits.first()
-
-        val lastDigit = digits.last()
-        lastDigit
-
-        val theInt = firstDigit + "" + lastDigit
-
-
-        theInt.toInt()
+private fun day1Part1SumFirstAndLastDigits(input: List<String>) =
+    input.map { line ->
+        line.concatenateFirstAndLastDigitsAndConvertToInt()
     }.sum()
-    return result
-}
 
-private fun day1Part2SumFirstAndLastDigitsAfterSubstitutingDigitsForWords(tharInput: List<String>): Int {
-    val result = tharInput.map { line ->
-
-        val lineReplaced = substituteDigitsForWords(line)
-
-        val digits = lineReplaced.filter { it.isDigit() }
-        val firstDigit = digits.first()
-
-        val lastDigit = digits.last()
-        lastDigit
-
-        val theInt = firstDigit + "" + lastDigit
-
-
-        theInt.toInt()
+private fun day1Part2SumFirstAndLastDigitsAfterSubstitutingDigitsForWords(input: List<String>) =
+    input.map {
+        it.substituteDigitsForWords().concatenateFirstAndLastDigitsAndConvertToInt()
     }.sum()
-    return result
-}
 
+private fun String.concatenateFirstAndLastDigitsAndConvertToInt(): Int {
+    val digits = filter { it.isDigit() }
+    return "${digits.first()}${digits.last()}".toInt()
+}
 
 val testInput =
     """

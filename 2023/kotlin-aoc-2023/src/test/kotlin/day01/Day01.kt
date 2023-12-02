@@ -36,6 +36,36 @@ class Day01 {
     }
 
     @Test
+    internal fun `part 2 with test input - using regexes`() {
+        val regex = "(?=(one|two|three|four|five|six|seven|eight|nine|0|1|2|3|4|5|6|7|8|9))".toRegex()
+
+        val result = testInput2.map { line ->
+            val matches = regex
+                .findAll(line)
+                .map { it.groupValues[1] }
+                .map(::wordsToDigits)
+            "${matches.first()}${matches.last()}".toInt()
+        }.sum()
+
+        result shouldBe 281
+    }
+
+    @Test
+    internal fun `part 2 with real input - using regexes`() {
+        val regex = "(?=(one|two|three|four|five|six|seven|eight|nine|0|1|2|3|4|5|6|7|8|9))".toRegex()
+
+        val result = readInputFileToList("day01.txt").map { line ->
+            val matches = regex
+                .findAll(line)
+                .map { it.groupValues[1] }
+                .map(::wordsToDigits)
+            "${matches.first()}${matches.last()}".toInt()
+        }.sum()
+
+        result shouldBe 55218
+    }
+
+    @Test
     fun `correctly maps overlapping numbers`() {
         "ppkeightwo5ggthreet".substituteDigitsForWords() shouldBe "ppk825gg3t"
         "eightwothree".substituteDigitsForWords() shouldBe "823"
@@ -126,6 +156,20 @@ val digitsMap = mapOf(
     "9" to 9,
     "nine" to 9
 )
+
+fun wordsToDigits(token: String): String =
+    when (token) {
+        "one" -> "1"
+        "two" -> "2"
+        "three" -> "3"
+        "four" -> "4"
+        "five" -> "5"
+        "six" -> "6"
+        "seven" -> "7"
+        "eight" -> "8"
+        "nine" -> "9"
+        else -> token
+    }
 
 private fun maybeDigit(s: String): Int? = digitsMap.entries.firstOrNull() { s.startsWith(it.key) }?.value
 

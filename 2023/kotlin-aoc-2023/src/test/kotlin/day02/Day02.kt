@@ -8,132 +8,60 @@ import org.junit.jupiter.api.Test
 class Day02 {
     @Test
     internal fun `part 1 sample input`() {
-        val input = testInput
-        val result = part1(input)
-        result shouldBe 8
+        part1(testInput) shouldBe 8
     }
 
     @Test
     internal fun `part 1 real input`() {
-        val input = readInputFileToList("day02.txt")
-        val result = part1(input)
-        result shouldBe 2439
+        part1(readInputFileToList("day02.txt")) shouldBe 2439
     }
 
     @Test
     internal fun `part 2 sample input`() {
-        val input = testInput
-        val result = part2(input)
-        result shouldBe 2286
+        part2(testInput) shouldBe 2286
     }
 
     @Test
     internal fun `part 2 real input`() {
-        val input = readInputFileToList("day02.txt")
-        val result = part2(input)
-        result shouldBe 63711
+        part2(readInputFileToList("day02.txt")) shouldBe 63711
     }
 
-    private fun part1(input: List<String>): Int {
-        val regex = "^Game (\\d+): (.*)$".toRegex()
-        val games = input.map {
-            Game.parseGame(it, regex)
-        }
+    private fun part1(input: List<String>) =
+        Game.parseGamesFrom(input)
+            .filter { it.isPossibleIfCubesAreReplaced() }
+            .sumOf { it.id }
 
-        println(games)
-
-        for (game in games) {
-            println(game.gameNum)
-            for (set in game.sets) {
-                println("  $set")
-            }
-
-        }
-
-        val gamesThatAreValie = games.filter { it.isPossibleIfCubesAreReplaced() }
-            .map { it.gameNum }
-
-        val result = gamesThatAreValie
-            .sum()
-        return result
-    }
-
-    private fun part2(input: List<String>): Int {
-        val regex = "^Game (\\d+): (.*)$".toRegex()
-        val games = input.map {
-            Game.parseGame(it, regex)
-        }
-
-        println(games)
-
-        for (game in games) {
-            println(game.gameNum)
-            for (set in game.sets) {
-                println("  $set")
-            }
-        }
-
-        val gamesThatAreValie = games
-            .map { it.power() }
-
-        val result = gamesThatAreValie
-            .sum()
-        return result
-    }
-
-
-//    @Test
-//    internal fun `part 1 real input`() {
-////        day1Part1SumFirstAndLastDigits(readInputFileToList("day01.txt")) shouldBe 54951
-//    }
-
-//    @Test
-//    internal fun `part 2 sample input`() {
-//        day1Part2SumFirstAndLastDigitsAfterSubstitutingDigitsForWords(testInput2) shouldBe 281
-//    }
-//
-//    @Test
-//    internal fun `part 2 real input`() {
-//        day1Part2SumFirstAndLastDigitsAfterSubstitutingDigitsForWords(readInputFileToList("day01.txt")) shouldBe 55218
-//    }
+    private fun part2(input: List<String>) =
+        Game.parseGamesFrom(input)
+            .sumOf { it.power() }
 }
 
 data class Game(
-    val gameNum: Int,
+    val id: Int,
     val sets: List<GameSet>,
 )  {
-    fun isPossibleIfCubesAreReplaced(): Boolean {
-        val totalReds = sets.map { it.red }.max()
-        val totalGreen = sets.map { it.green }.max()
-        val totalBlues = sets.map { it.blue }.max()
+    fun isPossibleIfCubesAreReplaced(): Boolean =
+        sets.maxOf { it.red } <= 12 &&
+        sets.maxOf { it.green } <= 13 &&
+        sets.maxOf { it.blue } <= 14
 
-        return totalReds <= 12 &&
-                totalGreen <= 13 &&
-                totalBlues <= 14
-    }
-
-    fun power(): Int {
-        val maxRed = sets.map { it.red }.max()
-        val maxGreen = sets.map { it.green }.max()
-        val maxBlue = sets.map { it.blue }.max()
-
-        return maxRed * maxGreen * maxBlue
-    }
+    fun power(): Int =
+        sets.maxOf { it.red } *
+        sets.maxOf { it.green } *
+        sets.maxOf { it.blue }
 
     companion object {
-        fun parseGame(it: String, regex: Regex): Game {
-            val meh = it.parseUsingRegex(regex)
+        val regex = "^Game (\\d+): (.*)$".toRegex()
 
-            val thingies = meh.toList()
+        fun parseGamesFrom(input: List<String>): List<Game> = input.map { parseGame(it) }
 
-            val gameNum = thingies[0].toInt()
-
-            val sets = thingies[1].split(";").map {
-                GameSet.parse(it)
-            }
-            return Game(gameNum, sets)
+        fun parseGame(line: String): Game {
+            val (idString, gamesString) = line.parseUsingRegex(regex).toList()
+            val sets = gamesString
+                .split(";")
+                .map { GameSet.parse(it) }
+            return Game(idString.toInt(), sets)
         }
-
     }
 }
 
@@ -143,36 +71,25 @@ data class GameSet(
     val blue: Int
 ) {
     companion object {
-        fun parse(input: String): GameSet {
-            val redRegex = "(\\d+) red".toRegex()
-            val greenRegex = "(\\d+) green".toRegex()
-            val blueRegex = "(\\d+) blue".toRegex()
+        val RED_REGEX = "(\\d+) red".toRegex()
+        val GREEN_REGEX = "(\\d+) green".toRegex()
+        val BLUE_REGEX = "(\\d+) blue".toRegex()
 
-            val red = if (redRegex.containsMatchIn(input)) {
-                val (redString) = input.parseUsingRegex(redRegex)
-                redString.toInt()
+        fun parse(input: String) =
+            GameSet(
+                input.parseCube(RED_REGEX),
+                input.parseCube(GREEN_REGEX),
+                input.parseCube(BLUE_REGEX)
+            )
+
+        private fun String.parseCube(regex: Regex): Int {
+            val numCubes = if (regex.containsMatchIn(this)) {
+                val (numString) = parseUsingRegex(regex)
+                numString.toInt()
             } else {
                 0
             }
-
-            val green = if (greenRegex.containsMatchIn(input)) {
-                val (greenString) = input.parseUsingRegex(greenRegex)
-                greenString.toInt()
-            } else {
-                0
-            }
-
-
-
-            val blue = if (blueRegex.containsMatchIn(input)) {
-                val (blueString) = input.parseUsingRegex(blueRegex)
-                blueString.toInt()
-            } else {
-                0
-            }
-
-            return GameSet(red, green, blue)
-
+            return numCubes
         }
     }
 }

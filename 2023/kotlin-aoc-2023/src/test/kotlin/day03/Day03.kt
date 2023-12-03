@@ -23,8 +23,8 @@ private fun parseInput(testInput: List<String>): Pair<List<Symbol>, List<PartNum
     val symbols = testInput.withIndex()
         .flatMap { (y, line) -> parseSymbols(y, line) }
     val partNumbers = testInput.withIndex()
-            .flatMap { (y, line) -> parseNumbers(y, line) }
-            .filter { it.isAdjacentToAnyOf(symbols) }
+        .flatMap { (y, line) -> parseNumbers(y, line) }
+        .filter { it.isAdjacentToAnyOf(symbols) }
 
     return Pair(symbols, partNumbers)
 }

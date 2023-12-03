@@ -37,19 +37,19 @@ fun parseSymbols(y: Int, line: String) =
 fun parseNumbers(y: Int, line: String) =
     partNumberRegex
         .findAll(line)
-        .map { PartNumber(it.value.toInt(), y, it.range.start, it.range.endInclusive) }
+        .map { PartNumber(it.value.toInt(), it.range.start, it.range.endInclusive, y) }
 
 data class PartNumber(
     val partNumber: Int,
-    val y: Int,
-    val start: Int,
-    val end: Int
+    val startX: Int,
+    val endX: Int,
+    val y: Int
 ) {
     fun isAdjacentToAnyOf(symbols: List<Symbol>) = symbols.any { isAdjacentTo(it) }
 
     fun isAdjacentTo(symbol: Symbol) =
-        symbol.x in (start - 1)..(end + 1) &&
-        symbol.y in (y-1)..(y+1)
+        symbol.x in (startX - 1)..(endX + 1) &&
+        symbol.y in (y -1)..(y +1)
 }
 
 data class Symbol(
@@ -58,13 +58,14 @@ data class Symbol(
     val y: Int
 ) {
     fun gearRatio(partNumbers: List<PartNumber>): Int =
-        partNumbers.filter { it.isAdjacentTo(this) }.let {
-            if (value == "*" && it.size == 2) {
-                it[0].partNumber * it[1].partNumber
-            } else {
-                0
+        partNumbers.filter { it.isAdjacentTo(this) }
+            .let { adjacentPartNumbers ->
+                if (value == "*" && adjacentPartNumbers.size == 2) {
+                    adjacentPartNumbers[0].partNumber * adjacentPartNumbers[1].partNumber
+                } else {
+                    0
+                }
             }
-        }
 }
 
 class Day03Test {
@@ -91,14 +92,14 @@ class Day03Test {
     @Test
     fun `non-adjacent symbol is not adjacent`() {
         val symbol = Symbol("*", 3, 1)
-        val partNumber = PartNumber(114, 0, 5, 7)
+        val partNumber = PartNumber(114, 5, 7, 0)
 
         partNumber.isAdjacentTo(symbol) shouldBe false
     }
 
     @Test
     fun `adjacent symbol is adjacent`() {
-        val partNumber = PartNumber(partNumber=633, y=2, start=6, end=8)
+        val partNumber = PartNumber(partNumber=633, startX=6, endX=8, y=2)
         val symbol = Symbol("&", 6, 3)
 
         partNumber.isAdjacentTo(symbol) shouldBe true

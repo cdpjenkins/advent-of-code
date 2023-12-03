@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test
 val partNumberRegex = "(\\d+)".toRegex()
 val symbolRegex = "([^\\d\\s.])".toRegex()
 
-private fun part1(testInput: List<String>): Int {
+private fun part1SumOfPartNumbers(testInput: List<String>): Int {
     val (_, partNumbers) = parseInput(testInput)
 
     return partNumbers.sumOf { it.partNumber }
 }
 
-private fun part2(testInput: List<String>): Int {
+private fun part2SumOfGearRatios(testInput: List<String>): Int {
     val (symbols, partNumbers) = parseInput(testInput)
 
     return symbols.sumOf { it.gearRatio(partNumbers) }
@@ -70,22 +70,22 @@ data class Symbol(
 class Day03Test {
     @Test
     internal fun `part 1 sample input`() {
-        part1(testInput) shouldBe 4361
+        part1SumOfPartNumbers(testInput) shouldBe 4361
     }
 
     @Test
     internal fun `part 1 real input`() {
-        part1(readInputFileToList("day03.txt")) shouldBe 546312
+        part1SumOfPartNumbers(readInputFileToList("day03.txt")) shouldBe 546312
     }
 
     @Test
     internal fun `part 2 sample input`() {
-        part2(testInput) shouldBe 467835
+        part2SumOfGearRatios(testInput) shouldBe 467835
     }
 
     @Test
     internal fun `part 2 real input`() {
-        part2(readInputFileToList("day03.txt")) shouldBe 87449461
+        part2SumOfGearRatios(readInputFileToList("day03.txt")) shouldBe 87449461
     }
 
     @Test

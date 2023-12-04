@@ -5,43 +5,57 @@ import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-private fun part1(testInput: List<String>): Int {
-    val cards = testInput.map { Card.of(it) }
+private fun part1(input: List<String>): Int {
+    val cards = input.map { Card.of(it) }
 
-    val scores = cards.map { it.score() }
-    val score = scores.sum()
+    return cards.sumOf { it.score }
+}
 
+private fun part2(input: List<String>): Int {
+    val cards = input.map { Card.of(it) }
 
-    return score
+    // urgh, mutating state :-(
+    cards.withIndex().forEach { (i, card) ->
+        for (j in (1..card.matches)) {
+            cards[i + j].numInstances += card.numInstances
+        }
+    }
+
+    return cards.sumOf { it.numInstances }
 }
 
 data class Card(
     val id: Int,
     val winningNumbers: List<Int>,
-    val yourNumbers: List<Int>
+    val yourNumbers: List<Int>,
+    var numInstances: Int = 1
 ) {
-    fun score(): Int = matches().exp2()
-    fun matches(): Int = yourNumbers.filter { it in winningNumbers }.size
+    val matches = yourNumbers.filter { it in winningNumbers }.size
+    val score = matches.pow2()
 
     companion object {
-        val regex = "^Card(?:\\s+)(\\d+):([^|]+)\\|(.*)$".toRegex()
+        val CARD_REGEX = "^Card(?:\\s+)(\\d+):([^|]+)\\|(.*)$".toRegex()
+        val WHITESPACE_REGEX = "\\s+".toRegex()
 
         fun of(line: String): Card {
-            val (idString, winningNumbersString, yourNumbersString) = line.parseUsingRegex(regex)
+            val (idString, winningNumbersString, yourNumbersString) = line.parseUsingRegex(CARD_REGEX)
 
-            val winningNumbers = winningNumbersString.trim().split("\\s+".toRegex()).map { it.toInt() }
-            val yourNumbers = yourNumbersString.trim().split("\\s+".toRegex()).map { it.toInt() }
-
-            return Card(idString.toInt(), winningNumbers, yourNumbers)
+            return Card(
+                idString.toInt(),
+                winningNumbersString.parseToIntList(),
+                yourNumbersString.parseToIntList()
+            )
         }
+
+        private fun String.parseToIntList() = trim().split(WHITESPACE_REGEX).map { it.toInt() }
     }
 }
 
-private fun Int.exp2(): Int =
+private fun Int.pow2(): Int =
     when (this) {
         0 -> 0
         1 -> 1
-        else -> 2 * (this - 1).exp2()
+        else -> 2 * (this - 1).pow2()
     }
 
 class Day04Test {
@@ -55,15 +69,15 @@ class Day04Test {
         part1(readInputFileToList("day04.txt")) shouldBe 18653
     }
 
-//    @Test
-//    internal fun `part 2 sample input`() {
-//
-//    }
-//
-//    @Test
-//    internal fun `part 2 real input`() {
-//
-//    }
+    @Test
+    internal fun `part 2 sample input`() {
+        part2(testInput) shouldBe 30
+    }
+
+    @Test
+    internal fun `part 2 real input`() {
+        part2(readInputFileToList("day04.txt")) shouldBe 30
+    }
 
     @Test
     fun `card with 2 winning numbers has score of 2`() {
@@ -73,7 +87,7 @@ class Day04Test {
             yourNumbers = listOf(69, 82, 63, 72, 16, 21, 14, 1)
         )
 
-        card.score() shouldBe 2
+        card.score shouldBe 2
     }
 
     val testInput =

@@ -51,12 +51,14 @@ data class Card(
     }
 }
 
-private fun Int.pow2(): Int =
-    when (this) {
+private fun Int.pow2(): Int {
+    require(this >= 0) { "Can only raise positive integers to power of 2" }
+    return when (this) {
         0 -> 0
         1 -> 1
         else -> 2 * (this - 1).pow2()
     }
+}
 
 class Day04Test {
     @Test

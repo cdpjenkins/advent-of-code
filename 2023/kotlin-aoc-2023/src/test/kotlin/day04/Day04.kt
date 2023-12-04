@@ -34,7 +34,7 @@ data class Card(
     val score = matches.pow2()
 
     companion object {
-        val CARD_REGEX = "^Card(?:\\s+)(\\d+):([^|]+)\\|(.*)$".toRegex()
+        val CARD_REGEX = "^Card\\s+(\\d+):([^|]+)\\|(.*)$".toRegex()
         val WHITESPACE_REGEX = "\\s+".toRegex()
 
         fun of(line: String): Card {
@@ -76,7 +76,7 @@ class Day04Test {
 
     @Test
     internal fun `part 2 real input`() {
-        part2(readInputFileToList("day04.txt")) shouldBe 30
+        part2(readInputFileToList("day04.txt")) shouldBe 5921508
     }
 
     @Test

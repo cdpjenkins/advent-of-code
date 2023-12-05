@@ -14,23 +14,6 @@ private fun part1(input: List<String>): Long {
     return initialSeeds.minOf { mappings.mapItAllTheWay(it) }
 }
 
-private fun part2BruteForce(input: List<String>): Long {
-    val initialSeedsRanges = parseInitialSeedsAsRanges(input)
-    val mappings: Map<Pair<String, String>, Mapping> = parseMappings(input)
-
-    for (initialSeedsRange in initialSeedsRanges) {
-        val minOf = (initialSeedsRange.start until (initialSeedsRange.start + initialSeedsRange.length))
-            .minOf {
-                mappings.mapItAllTheWay(it)
-            }
-
-        println(minOf)
-    }
-
-//    return initialSeeds.minOf { mappings.mapItAllTheWay(it) }
-    return -1
-}
-
 private fun part2(input: List<String>): Long {
     val initialSeedsRanges = parseInitialSeedsAsRanges(input)
     val mappings: Map<Pair<String, String>, Mapping> = parseMappings(input)

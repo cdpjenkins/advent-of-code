@@ -18,13 +18,7 @@ private fun part2(input: List<String>): Long {
     val initialSeedsRanges = parseInitialSeedsAsRanges(input)
     val mappings: Map<Pair<String, String>, Mapping> = parseMappings(input)
 
-    val mappedOnce = mappings.mapSeedRangesAllTheWay(initialSeedsRanges)
-
-    println(mappedOnce)
-
-
-    return mappedOnce.minOf { it.start }
-
+    return mappings.mapSeedRangesAllTheWay(initialSeedsRanges).minOf { it.start }
 }
 
 private fun parseMappings(testInput: List<String>): Map<Pair<String, String>, Mapping> =

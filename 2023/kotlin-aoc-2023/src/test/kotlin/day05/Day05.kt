@@ -109,8 +109,8 @@ class Mapping(
         seedRanges.flatMap {
             this.mapRange(it)
         }
-
 }
+
 data class MappingRange(
     val destinationRangeStart: Long,
     val sourceRangeStart: Long,

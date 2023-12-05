@@ -5,7 +5,6 @@ import ListUtils.parseSpaceSeparatedNumberList
 import ListUtils.splitByBlank
 import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 private fun part1(input: List<String>): Long {
@@ -13,6 +12,23 @@ private fun part1(input: List<String>): Long {
     val mappings: Map<Pair<String, String>, Mapping> = parseMappings(input)
 
     return initialSeeds.minOf { mappings.mapItAllTheWay(it) }
+}
+
+private fun part2BruteForce(input: List<String>): Long {
+    val initialSeedsRanges = parseInitialSeedsAsRanges(input)
+    val mappings: Map<Pair<String, String>, Mapping> = parseMappings(input)
+
+    for (initialSeedsRange in initialSeedsRanges) {
+        val minOf = (initialSeedsRange.start until (initialSeedsRange.start + initialSeedsRange.length))
+            .minOf {
+                mappings.mapItAllTheWay(it)
+            }
+
+        println(minOf)
+    }
+
+//    return initialSeeds.minOf { mappings.mapItAllTheWay(it) }
+    return -1
 }
 
 private fun part2(input: List<String>): Long {
@@ -23,7 +39,6 @@ private fun part2(input: List<String>): Long {
 
     println(mappedOnce)
 
-//    return initialSeeds.minOf { mappings.mapItAllTheWay(it) }
 
     return mappedOnce.minOf { it.start }
 
@@ -61,7 +76,7 @@ private fun List<String>.parseMap(): Mapping {
     return Mapping(
         from,
         to,
-        ranges = positiveRanges + negativeRanges
+        ranges = (positiveRanges + negativeRanges).sortedBy { it.sourceRangeStart}
     )
 }
 
@@ -115,7 +130,6 @@ class Mapping(
     }
 
     fun mapRanges(seedRanges: List<SeedRange>): List<SeedRange> {
-
         return seedRanges.flatMap {
             this.mapRange(it)
         }
@@ -140,10 +154,14 @@ data class MappingRange(
 
     fun mapRange(thatRange: SeedRange): SeedRange? {
         val overlap = sourceRange.overlapWith(thatRange)
-        return overlap
+
+        if (overlap != null) {
+            val offsetMeDo = overlap.start - this.sourceRangeStart
+            return SeedRange(this.destinationRangeStart + offsetMeDo, overlap.length)
+        } else {
+            return overlap
+        }
     }
-
-
 }
 
 val seedsToPlantRegex = "^seeds: (.*)$".toRegex()
@@ -157,7 +175,7 @@ private fun parseInitialSeeds(testInput: List<String>): List<Long> {
 }
 
 fun parseInitialSeedsAsRanges(input: List<String>): List<SeedRange> {
-    val (seedsListString) = testInput.first().parseUsingRegex(seedsToPlantRegex)
+    val (seedsListString) = input.first().parseUsingRegex(seedsToPlantRegex)
 
     val seedsList = parseSpaceSeparatedNumberList(seedsListString)
 
@@ -173,6 +191,8 @@ data class SeedRange(
     val endExclusive = start + length
 
     fun overlapWith(that: SeedRange): SeedRange? {
+        // TODO this is where the horrific bug is
+
         val start = maxOf(this.start, that.start)
         val end = minOf(this.endExclusive, that.endExclusive)
 
@@ -198,10 +218,14 @@ class Day05Test {
         part1(readInputFileToList("day05.txt")) shouldBe 165788812L
     }
 
-//    @Disabled
     @Test
     fun `part 2 with test input`() {
         part2(testInput) shouldBe 46
+    }
+
+    @Test
+    fun `part 2 with real input`() {
+        part2(readInputFileToList("day05.txt")) shouldBe 1928058L
     }
 
     @Test
@@ -215,6 +239,20 @@ class Day05Test {
         seedToSoil.mapNumber(13) shouldBe 13
     }
 
+    @Test
+    fun `can map a number all the way through`() {
+        val mappings = parseMappings(testInput)
+
+        val ston = mappings.mapItAllTheWay(82)
+
+        for (source in (0..100)) {
+            val dest = mappings.mapItAllTheWay(source.toLong())
+
+            println("${source}  --> ${dest}")
+        }
+
+        ston shouldBe 46L
+    }
 
     @Test
     fun `non-overlapping ranges do not overlap`() {
@@ -226,6 +264,21 @@ class Day05Test {
     fun `overlapping range where first range starts first returns overlap`() {
         SeedRange(0, 5).overlapWith(SeedRange(2, 5)) shouldBe SeedRange(2, 3)
     }
+
+    @Test
+    fun `mapRange does sane things when seedRange begins before mappingRange`() {
+        MappingRange(110, 10, 15)
+            .mapRange(SeedRange(5, 10)) shouldBe
+                SeedRange(110, 5)
+    }
+
+    @Test
+    fun `mapRange does sane things when seedRange begins after mappingRange`() {
+        MappingRange(105, 5, 15)
+            .mapRange(SeedRange(10, 20)) shouldBe
+                SeedRange(110, 10)
+    }
+
 
     // there are probably loads more tests for overlapping ranges but meh, the logic looks good now
 }

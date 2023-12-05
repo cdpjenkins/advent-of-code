@@ -41,10 +41,27 @@ val headerRegex = "([a-z]+)-to-([a-z]+) map:"
 private fun List<String>.parseMap(): Mapping {
     val (from, to) = this.first().parseUsingRegex(headerRegex)
 
+    val positiveRanges = drop(1)
+        .map { parseRange(it) }
+        .sortedBy { it.sourceRangeStart }
+
+    val negativeRanges = mutableListOf<MappingRange>()
+    var currentIndex = 0L
+    positiveRanges.forEach { positiveRange ->
+        if (currentIndex < positiveRange.sourceRangeStart) {
+            val negativeRange = MappingRange(currentIndex, currentIndex, positiveRange.sourceRangeStart - currentIndex)
+            negativeRanges.add(negativeRange)
+        }
+        currentIndex = positiveRange.sourceRangeStart + positiveRange.rangeLength
+    }
+    if (currentIndex < Long.MAX_VALUE) {
+        negativeRanges.add(MappingRange(currentIndex, currentIndex, Long.MAX_VALUE - currentIndex))
+    }
+
     return Mapping(
         from,
         to,
-        ranges = drop(1).map { parseRange(it) }
+        ranges = positiveRanges + negativeRanges
     )
 }
 
@@ -181,12 +198,11 @@ class Day05Test {
         part1(readInputFileToList("day05.txt")) shouldBe 165788812L
     }
 
-    @Disabled
+//    @Disabled
     @Test
     fun `part 2 with test input`() {
         part2(testInput) shouldBe 46
     }
-
 
     @Test
     fun `seed-to-soil mappings work correctly`() {

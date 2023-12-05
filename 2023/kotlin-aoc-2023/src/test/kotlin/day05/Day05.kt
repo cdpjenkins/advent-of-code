@@ -136,11 +136,11 @@ data class MappingRange(
     fun mapRange(thatRange: SeedRange): SeedRange? {
         val overlap = sourceRange.overlapWith(thatRange)
 
-        if (overlap != null) {
+        return if (overlap != null) {
             val offsetMeDo = overlap.start - this.sourceRangeStart
-            return SeedRange(this.destinationRangeStart + offsetMeDo, overlap.length)
+            SeedRange(this.destinationRangeStart + offsetMeDo, overlap.length)
         } else {
-            return overlap
+            overlap
         }
     }
 }

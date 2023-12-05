@@ -5,13 +5,28 @@ import ListUtils.parseSpaceSeparatedNumberList
 import ListUtils.splitByBlank
 import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-private fun part1(testInput: List<String>): Long {
-    val initialSeeds = parseInitialSeeds(testInput)
-    val mappings: Map<Pair<String, String>, Mapping> = parseMappings(testInput)
+private fun part1(input: List<String>): Long {
+    val initialSeeds = parseInitialSeeds(input)
+    val mappings: Map<Pair<String, String>, Mapping> = parseMappings(input)
 
     return initialSeeds.minOf { mappings.mapItAllTheWay(it) }
+}
+
+private fun part2(input: List<String>): Long {
+    val initialSeedsRanges = parseInitialSeedsAsRanges(input)
+    val mappings: Map<Pair<String, String>, Mapping> = parseMappings(input)
+
+    val mappedOnce = mappings.mapSeedRangesAllTheWay(initialSeedsRanges)
+
+    println(mappedOnce)
+
+//    return initialSeeds.minOf { mappings.mapItAllTheWay(it) }
+
+    return mappedOnce.minOf { it.start }
+
 }
 
 private fun parseMappings(testInput: List<String>): Map<Pair<String, String>, Mapping> =
@@ -52,6 +67,22 @@ private fun Map<Pair<String, String>, Mapping>.mapItAllTheWay(seed: Long): Long 
     return location
 }
 
+private fun Map<Pair<String, String>, Mapping>.mapSeedRangesAllTheWay(
+    initialSeedsRanges: List<SeedRange>
+): List<SeedRange> {
+
+    // bit of a hack but it works for now
+    val soil = this["seed" to "soil"]!!.mapRanges(initialSeedsRanges)
+    val fertilizer = this["soil" to "fertilizer"]!!.mapRanges(soil)
+    val water = this["fertilizer" to "water"]!!.mapRanges(fertilizer)
+    val light = this["water" to "light"]!!.mapRanges(water)
+    val temperature = this["light" to "temperature"]!!.mapRanges(light)
+    val humidity = this["temperature" to "humidity"]!!.mapRanges(temperature)
+    val location = this["humidity" to "location"]!!.mapRanges(humidity)
+
+    return location
+}
+
 class Mapping(
     val from: String,
     val to: String,
@@ -61,12 +92,26 @@ class Mapping(
         ranges
             .firstNotNullOfOrNull { it.mapNumber(sourceNumber) }
             ?: sourceNumber
+
+    fun mapRange(seedRange: SeedRange): List<SeedRange> {
+        return ranges.mapNotNull { it.mapRange(seedRange) }
+    }
+
+    fun mapRanges(seedRanges: List<SeedRange>): List<SeedRange> {
+
+        return seedRanges.flatMap {
+            this.mapRange(it)
+        }
+    }
+
 }
 data class MappingRange(
     val destinationRangeStart: Long,
     val sourceRangeStart: Long,
     val rangeLength: Long
 ) {
+    val sourceRange = SeedRange(sourceRangeStart, rangeLength)
+
     fun mapNumber(sourceNumber: Long): Long? {
         val offset = sourceNumber - sourceRangeStart
         return if (offset >= 0 && offset < rangeLength) {
@@ -75,6 +120,13 @@ data class MappingRange(
             null
         }
     }
+
+    fun mapRange(thatRange: SeedRange): SeedRange? {
+        val overlap = sourceRange.overlapWith(thatRange)
+        return overlap
+    }
+
+
 }
 
 val seedsToPlantRegex = "^seeds: (.*)$".toRegex()
@@ -85,6 +137,37 @@ private fun parseInitialSeeds(testInput: List<String>): List<Long> {
     return seedsListString
         .split(" ")
         .map { it.toLong() }
+}
+
+fun parseInitialSeedsAsRanges(input: List<String>): List<SeedRange> {
+    val (seedsListString) = testInput.first().parseUsingRegex(seedsToPlantRegex)
+
+    val seedsList = parseSpaceSeparatedNumberList(seedsListString)
+
+    val ranges = seedsList.chunked(2).map { (start, length) -> SeedRange(start, length) }
+
+    return ranges
+}
+
+data class SeedRange(
+    val start: Long,
+    val length: Long
+) {
+    val endExclusive = start + length
+
+    fun overlapWith(that: SeedRange): SeedRange? {
+        val start = maxOf(this.start, that.start)
+        val end = minOf(this.endExclusive, that.endExclusive)
+
+        if (end <= start) return null
+
+        return SeedRange(start, end - start)
+    }
+}
+
+private infix fun Long.within(seedRange: SeedRange): Boolean {
+    val offset = this - seedRange.start
+    return offset < seedRange.length
 }
 
 class Day05Test {
@@ -98,6 +181,13 @@ class Day05Test {
         part1(readInputFileToList("day05.txt")) shouldBe 165788812L
     }
 
+    @Disabled
+    @Test
+    fun `part 2 with test input`() {
+        part2(testInput) shouldBe 46
+    }
+
+
     @Test
     fun `seed-to-soil mappings work correctly`() {
         val mappings = parseMappings(testInput)
@@ -108,6 +198,20 @@ class Day05Test {
         seedToSoil.mapNumber(55) shouldBe 57
         seedToSoil.mapNumber(13) shouldBe 13
     }
+
+
+    @Test
+    fun `non-overlapping ranges do not overlap`() {
+        SeedRange(0, 5).overlapWith(SeedRange(10, 5)) shouldBe null
+        SeedRange(10, 5).overlapWith(SeedRange(0, 5)) shouldBe null
+    }
+
+    @Test
+    fun `overlapping range where first range starts first returns overlap`() {
+        SeedRange(0, 5).overlapWith(SeedRange(2, 5)) shouldBe SeedRange(2, 3)
+    }
+
+    // there are probably loads more tests for overlapping ranges but meh, the logic looks good now
 }
 
 

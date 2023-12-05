@@ -48,18 +48,19 @@ private fun parseMappings(testInput: List<String>): Map<Pair<String, String>, Ma
     testInput
         .splitByBlank()
         .drop(1)
-        .map { it.parseMap() }
+        .map { it.parseMapping() }
         .map { Pair(it.from, it.to) to it }
         .toMap()
 
 val headerRegex = "([a-z]+)-to-([a-z]+) map:"
-private fun List<String>.parseMap(): Mapping {
+private fun List<String>.parseMapping(): Mapping {
     val (from, to) = this.first().parseUsingRegex(headerRegex)
 
     val positiveRanges = drop(1)
         .map { parseRange(it) }
         .sortedBy { it.sourceRangeStart }
 
+    // urgh more mutable state
     val negativeRanges = mutableListOf<MappingRange>()
     var currentIndex = 0L
     positiveRanges.forEach { positiveRange ->
@@ -125,15 +126,12 @@ class Mapping(
             .firstNotNullOfOrNull { it.mapNumber(sourceNumber) }
             ?: sourceNumber
 
-    fun mapRange(seedRange: SeedRange): List<SeedRange> {
-        return ranges.mapNotNull { it.mapRange(seedRange) }
-    }
+    fun mapRange(seedRange: SeedRange) = ranges.mapNotNull { it.mapRange(seedRange) }
 
-    fun mapRanges(seedRanges: List<SeedRange>): List<SeedRange> {
-        return seedRanges.flatMap {
+    fun mapRanges(seedRanges: List<SeedRange>): List<SeedRange> =
+        seedRanges.flatMap {
             this.mapRange(it)
         }
-    }
 
 }
 data class MappingRange(
@@ -165,7 +163,6 @@ data class MappingRange(
 }
 
 val seedsToPlantRegex = "^seeds: (.*)$".toRegex()
-
 private fun parseInitialSeeds(testInput: List<String>): List<Long> {
     val (seedsListString) = testInput.first().parseUsingRegex(seedsToPlantRegex)
 
@@ -177,11 +174,11 @@ private fun parseInitialSeeds(testInput: List<String>): List<Long> {
 fun parseInitialSeedsAsRanges(input: List<String>): List<SeedRange> {
     val (seedsListString) = input.first().parseUsingRegex(seedsToPlantRegex)
 
-    val seedsList = parseSpaceSeparatedNumberList(seedsListString)
-
-    val ranges = seedsList.chunked(2).map { (start, length) -> SeedRange(start, length) }
-
-    return ranges
+    return parseSpaceSeparatedNumberList(seedsListString)
+        .chunked(2)
+        .map { (start, length) ->
+            SeedRange(start, length)
+        }
 }
 
 data class SeedRange(
@@ -191,8 +188,6 @@ data class SeedRange(
     val endExclusive = start + length
 
     fun overlapWith(that: SeedRange): SeedRange? {
-        // TODO this is where the horrific bug is
-
         val start = maxOf(this.start, that.start)
         val end = minOf(this.endExclusive, that.endExclusive)
 
@@ -200,11 +195,6 @@ data class SeedRange(
 
         return SeedRange(start, end - start)
     }
-}
-
-private infix fun Long.within(seedRange: SeedRange): Boolean {
-    val offset = this - seedRange.start
-    return offset < seedRange.length
 }
 
 class Day05Test {
@@ -241,17 +231,7 @@ class Day05Test {
 
     @Test
     fun `can map a number all the way through`() {
-        val mappings = parseMappings(testInput)
-
-        val ston = mappings.mapItAllTheWay(82)
-
-        for (source in (0..100)) {
-            val dest = mappings.mapItAllTheWay(source.toLong())
-
-            println("${source}  --> ${dest}")
-        }
-
-        ston shouldBe 46L
+        parseMappings(testInput).mapItAllTheWay(82) shouldBe 46L
     }
 
     @Test
@@ -262,7 +242,9 @@ class Day05Test {
 
     @Test
     fun `overlapping range where first range starts first returns overlap`() {
-        SeedRange(0, 5).overlapWith(SeedRange(2, 5)) shouldBe SeedRange(2, 3)
+        SeedRange(0, 5)
+            .overlapWith(SeedRange(2, 5)) shouldBe
+                SeedRange(2, 3)
     }
 
     @Test
@@ -278,7 +260,6 @@ class Day05Test {
             .mapRange(SeedRange(10, 20)) shouldBe
                 SeedRange(110, 10)
     }
-
 
     // there are probably loads more tests for overlapping ranges but meh, the logic looks good now
 }

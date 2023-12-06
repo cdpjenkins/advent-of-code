@@ -14,6 +14,7 @@ private fun part1(input: List<String>): Int {
 
     val games = (timeLine zip distanceLine)
     val results = games.map { (time, distance) -> numWaysYouCouldBeatRecord(time, distance) }
+
     return results.reduce { acc, i -> i * acc }
 }
 
@@ -22,6 +23,20 @@ private fun part2(input: List<String>): Int {
     val distance = input[1].split(":")[1].trim().replace("\\s+".toRegex(), "").toLong()
 
     return numWaysYouCouldBeatRecord(time, distance)
+}
+
+fun numWaysYouCouldBeatRecord(time: Long, distance: Long): Int {
+    val (root1, root2) = findRoots(time.toDouble(), distance.toDouble())
+
+    val begin = if (ceil(root1) == floor(root1)) {
+        ceil(root1 + 1)
+    } else {
+        ceil(root1)
+    }.toInt()
+
+    val end = ceil(root2).toInt()
+
+    return end - begin
 }
 
 fun race(buttonTime: Long, totalTime: Long): Long = buttonTime * (totalTime - buttonTime)
@@ -39,20 +54,6 @@ fun findRoots(time: Double, distance: Double): Pair<Double, Double> {
 fun bruteForceIt(totalTime: Long, distance: Long): Long {
     val num = (0..totalTime).map { race(it, totalTime) }.filter { it > distance }.count().toLong()
     return num
-}
-
-private fun numWaysYouCouldBeatRecord(time: Long, distance: Long): Int {
-    val (root1, root2) = findRoots(time.toDouble(), distance.toDouble())
-
-    val begin = if (ceil(root1) == floor(root1)) {
-        ceil(root1 + 1)
-    } else {
-        ceil(root1)
-    }.toInt()
-
-    val end = ceil(root2).toInt()
-
-    return end - begin
 }
 
 class Day06Test {

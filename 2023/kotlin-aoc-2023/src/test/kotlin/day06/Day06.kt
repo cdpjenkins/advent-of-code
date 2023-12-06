@@ -1,11 +1,11 @@
 package day06
 
+import FileUtil.readInputFileToList
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import kotlin.math.sqrt
-import kotlin.time.times
 
 fun race(buttonTime: Int, totalTime: Int): Int {
     return buttonTime * (totalTime - buttonTime)
@@ -22,10 +22,86 @@ fun findRootsDouble(time: Double, distance: Double): Pair<Double, Double> {
     return Pair(root1, root2)
 }
 
+fun bruteForceIt(totalTime: Int, distance: Int): Int {
+    val num = (0..totalTime).map { race(it, totalTime) }.filter { it > distance }.count()
+    return num
+}
+
 
 class Day06Test {
+
     @Test
-    fun `a few test races`() {
+    fun `part 1 with test input`() {
+        val timeLine = testInput[0].split(":")[1].trim().split("\\s+".toRegex()).map { it.toInt() }
+        val distanceLine = testInput[1].split(":")[1].trim().split("\\s+".toRegex()).map { it.toInt() }
+
+        println(timeLine)
+        println(distanceLine)
+
+        val games = (timeLine zip distanceLine)
+
+        println(games)
+
+        val results = games.map { (time, distance) -> bruteForceIt(time, distance) }
+        println(results)
+
+        val tharResult = results.reduce { acc, i -> i * acc }
+
+        println(tharResult)
+
+        tharResult shouldBe 288
+
+//        val results = games.map { (time, distance) -> race(time, distance) }
+//
+//        println(results)
+//
+    }
+
+    @Test
+    fun `part 1 with real input`() {
+        val input = readInputFileToList("day06.txt")
+
+
+        val timeLine = input[0].split(":")[1].trim().split("\\s+".toRegex()).map { it.toInt() }
+        val distanceLine = input[1].split(":")[1].trim().split("\\s+".toRegex()).map { it.toInt() }
+
+        println(timeLine)
+        println(distanceLine)
+
+        val games = (timeLine zip distanceLine)
+
+        println(games)
+
+        val results = games.map { (time, distance) -> bruteForceIt(time, distance) }
+        println(results)
+
+        val tharResult = results.reduce { acc, i -> i * acc }
+
+        println(tharResult)
+
+        tharResult shouldBe 227850
+    }
+
+
+    @Test
+    fun `ston`() {
+        numWaysYouCouldBeatRecord(7.0, 9.0) shouldBe 4
+        numWaysYouCouldBeatRecord(15.0, 40.0) shouldBe 8
+        numWaysYouCouldBeatRecord(30.0, 200.0) shouldBe 9
+    }
+
+    private fun numWaysYouCouldBeatRecord(time: Double, distance: Double): Int {
+        val (root1, root2) = findRootsDouble(time, distance)
+
+        val start = Math.ceil(root1).toInt()
+        val end = Math.ceil(root2).toInt()
+
+        val rangeMeDo = end - start
+        return rangeMeDo
+    }
+
+    @Test
+    fun `try brute force race 1`() {
         val totalTime = 7
 
         race(0, totalTime) shouldBe 0
@@ -36,6 +112,23 @@ class Day06Test {
         race(5, totalTime) shouldBe 10
         race(6, totalTime) shouldBe 6
         race(7, totalTime) shouldBe 0
+    }
+
+
+
+    @Test
+    fun `try brute force race 3`() {
+        val totalTime = 30
+        val distance = 200
+
+        for (buttonTime in (0..totalTime)) {
+            println("${buttonTime}\t${race(buttonTime, totalTime)}")
+        }
+
+        val num = bruteForceIt(totalTime, distance)
+
+        num shouldBe 9
+
     }
 
     @Test

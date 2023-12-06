@@ -40,7 +40,7 @@ class Day06Test {
 
     @Test
     fun `findRootsDouble actually does find roots`() {
-        val (root1, root2) = findRootsDouble(7.0, 0.0)
+        val (root1, root2) = findRootsDouble(7.0, 9.0)
 
         root1 shouldBe (1.6972243622680054 plusOrMinus 0.0001)
         root2 shouldBe (5.302775637731995 plusOrMinus 0.0001)

@@ -13,6 +13,19 @@ private fun part1(input: List<String>): Int =
         .withIndex()
         .sumOf { (i, hand) -> (i + 1) * hand.bid }
 
+private fun part2(input: List<String>): Int =
+    input.map { HandAndBid.of(it) }
+        .sortedWith(ComparingByPart2Rules)
+        .withIndex()
+        .sumOf { (i, hand) -> (i + 1) * hand.bid }
+
+object CompareHandsByPart1Rules : Comparator<Hand> {
+    override fun compare(o1: Hand, o2: Hand): Int {
+        return day07.ComparingByPart1Rules.compare(HandAndBid(o1, 0), HandAndBid(o2, 0))
+    }
+}
+
+
 object ComparingByPart1Rules : Comparator<HandAndBid> {
     override fun compare(o1: HandAndBid, o2: HandAndBid): Int {
         val comparedTypes = o1.hand.type.compareTo(o2.hand.type)
@@ -52,8 +65,75 @@ object ComparingByPart1Rules : Comparator<HandAndBid> {
     }
 }
 
+object ComparingByPart2Rules : Comparator<HandAndBid> {
+    override fun compare(o1: HandAndBid, o2: HandAndBid): Int {
+        val hand1 = o1.hand.highestPossibleSubstitution()
+        val hand2 = o2.hand.highestPossibleSubstitution()
+
+        val comparedTypes = hand1.type.compareTo(hand2.type)
+        if (comparedTypes != 0) return comparedTypes
+
+        return compareLists(o1.hand.hand.map { valueOf(it) }, o2.hand.hand.map { valueOf(it) })
+    }
+
+    fun compareLists(list1: List<Int>, list2: List<Int>): Int {
+        require(list1.size == list2.size)
+
+        for (i in (0 until list1.size)) {
+            val diff = list1[i] - list2[i]
+            if (diff != 0) return diff
+        }
+
+        return 0
+    }
+
+    private fun valueOf(card: Char): Int {
+        return when (card) {
+            'J' -> 1
+            '2' -> 2
+            '3' -> 3
+            '4' -> 4
+            '5' -> 5
+            '6' -> 6
+            '7' -> 7
+            '8' -> 8
+            '9' -> 9
+            'T' -> 10
+            'Q' -> 12
+            'K' -> 13
+            'A' -> 14
+            else -> throw IllegalArgumentException(card.toString())
+        }
+    }
+}
+
 @JvmInline
 value class Hand(val hand: String) {
+    fun highestPossibleSubstitution(): Hand {
+        if (this.hand == "JJJJJ") {
+            return Hand("AAAAA")
+        }
+
+        val withoutJokers = Hand(this.hand.replace("J", ""))
+
+        val allThePossibilities = addAllTheCards(listOf(withoutJokers))
+
+        return allThePossibilities.sortedWith(CompareHandsByPart1Rules).reversed().first()
+    }
+
+    fun addAllTheCards(partialHands: List<Hand>): List<Hand> {
+        if (partialHands.first().hand.length == 5) {
+            return partialHands
+        } else {
+            val ston = partialHands.first().hand
+                .flatMap {card ->
+                    partialHands.map { hand -> Hand(hand.hand + card) }
+                }
+            return addAllTheCards(ston)
+//            return partialHands.flatMap { addAllTheCards(it) }
+        }
+    }
+
     val frequencies: Map<Char, Int> get() = hand.groupingBy { it }.eachCount()
     val frequencyValues: List<Int> get() = frequencies.values.toList().sorted()
     val type: Type get() = Type.entries.first { it.matches(this) }
@@ -67,16 +147,10 @@ data class HandAndBid(
         val handRegex = "^([AKQJT98765432]{5}) (\\d+)$".toRegex()
 
         fun of(inputString: String): HandAndBid {
-
             val (handString, bidString) = inputString.parseUsingRegex(handRegex)
-
             return HandAndBid(Hand(handString), bidString.toInt())
         }
     }
-}
-
-private fun part2(input: List<String>): Int {
-    return 123
 }
 
 enum class Type {
@@ -117,16 +191,14 @@ class Day07Test {
         part1(readInputFileToList("day07.txt")) shouldBe 253954294
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInput) shouldBe 5905
     }
 
-    @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+        part2(readInputFileToList("day07.txt")) shouldBe 254837398
     }
 
     @Test
@@ -142,6 +214,12 @@ class Day07Test {
     @Test
     fun `KK677 beats KTJJT`() {
         ComparingByPart1Rules.compare(HandAndBid(Hand("KK677")), HandAndBid(Hand("KTJJT"))) shouldBeGreaterThan 0
+    }
+
+    @Test
+    fun `can find highest possible thingie`() {
+        Hand("KKKKK").highestPossibleSubstitution() shouldBe Hand("KKKKK")
+        Hand("JKKKK").highestPossibleSubstitution() shouldBe Hand("KKKKK")
     }
 }
 

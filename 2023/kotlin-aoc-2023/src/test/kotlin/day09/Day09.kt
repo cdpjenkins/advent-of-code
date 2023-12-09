@@ -36,7 +36,7 @@ private fun List<Int>.computeDifferences(): List<Int> =
     windowed(2)
         .map { (i, j) -> j - i }
 
-class TemplateTest {
+class Day09Test {
     @Test
     fun `part 1 with test input`() {
         part1(testInput) shouldBe 114

@@ -6,27 +6,46 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 private fun part1(input: List<String>): Int {
-    val (nodes, instructionsSeq) = parse(input)
+    val (nodes, instructions) = parse(input)
 
-    val initialNode = nodes["AAA"]!!
-    val targetNode = nodes["ZZZ"]!!
+    return nodes.stepsToTarget(instructions, "AAA") { it == "ZZZ" }
+}
+
+private fun part2(input: List<String>): Long {
+    val (nodes, instructions) = parse(input)
+
+    return nodes.keys.filter { it.endsWith("A") }
+        .map { node -> nodes.stepsToTarget(instructions, node) { it.endsWith("Z") } }
+        .map { it.toLong() }
+        .reduce { acc, it -> lcm(acc, it) }
+}
+
+fun Map<String, Node>.stepsToTarget(instructions: String, initialNodeId: String, targetPredicate: (String) -> Boolean): Int {
+    val initialNode = this[initialNodeId]!!
 
     val (numSteps, _) =
-        nodeSeq(instructionsSeq, initialNode, nodes)
+        nodeSeq(instructions.seq(), initialNode, this)
             .withIndex()
-            .find { (i, n) -> n == targetNode }!!
+            .find { (_, n) -> targetPredicate(n.id) }!!
 
     return numSteps
 }
 
-private fun parse(input: List<String>): Pair<Map<String, Node>, Sequence<Char>> {
+fun gcd(a: Long, b: Long): Long =
+    if (b > 0) gcd(b, a % b)
+    else a
+
+fun lcm(a: Long, b: Long): Long = a * (b / gcd(a, b))
+
+private fun String.seq(): Sequence<Char> = generateSequence { toList() }.flatten()
+
+private fun parse(input: List<String>): Pair<Map<String, Node>, String> {
     val instructions = input.first()
     val nodes = input.drop(2)
         .map { Node.parse(it) }
         .map { it.id to it }
         .toMap()
-    val instructionsSeq = generateSequence { instructions.toList() }.flatten()
-    return Pair(nodes, instructionsSeq)
+    return Pair(nodes, instructions)
 }
 
 fun nodeSeq(instructionSeq: Sequence<Char>, initialNode: Node, nodes: Map<String, Node>): Sequence<Node> {
@@ -47,17 +66,13 @@ fun nodeSeq(instructionSeq: Sequence<Char>, initialNode: Node, nodes: Map<String
     }
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
-}
-
 data class Node(
     val id: String,
     val left: String,
-    val right: String
+    val right: String,
 ) {
     companion object {
-        val nodeRegex = "([A-Z]{1,3}) = \\(([A-Z]{1,3}), ([A-Z]{1,3})\\)".toRegex()
+        val nodeRegex = "([A-Z0-9]{1,3}) = \\(([A-Z0-9]{1,3}), ([A-Z0-9]{1,3})\\)".toRegex()
 
         fun parse(line: String): Node {
             val (id, left, right) =  line.parseUsingRegex(nodeRegex)
@@ -77,16 +92,27 @@ class Day08Test {
         part1(readInputFileToList("day08.txt")) shouldBe 20777
     }
 
-//    @Test
-//    fun `part 2 with test input`() {
-//        part2(testInput2) shouldBe 6
-//    }
-//
-//    @Ignore
-//    @Test
-//    fun `part 2 with real input`() {
-//        part2(readInputFileToList("day_template.txt")) shouldBe -1
-//    }
+    @Test
+    fun `part 2 with test input`() {
+        part2(testInput2) shouldBe 6
+    }
+
+    @Test
+    fun `part 2 with real input`() {
+        part2(readInputFileToList("day08.txt")) shouldBe 13289612809129L
+    }
+
+    @Test
+    fun `can compute gcd of two numbers`() {
+        gcd(16, 12) shouldBe 4
+        gcd(99, 15) shouldBe 3
+    }
+
+    @Test
+    fun `can compute lcm of two numbers`() {
+        lcm(12, 8) shouldBe 24
+        // etc
+    }
 }
 
 val testInput =

@@ -5,11 +5,8 @@ import io.kotest.matchers.shouldBe
 import kotlin.math.abs
 import kotlin.test.Test
 
-private fun part1(input: List<String>): Int {
-
-
-
-    val expandedStars = parseAndExpand(input)
+private fun part1(input: List<String>): Long {
+    val expandedStars = input.parseAndExpand()
 
     val twiceTotalDistance = expandedStars.map { thisStar ->
         expandedStars.map { thatStar ->
@@ -20,24 +17,25 @@ private fun part1(input: List<String>): Int {
     return twiceTotalDistance / 2
 }
 
-private fun gimmeAStringRepresentation(expandedStars: List<Point2D>): String {
-    val expandedWidth = expandedStars.maxOf { it.x } + 1
-    val expandedHeight = expandedStars.maxOf { it.y } + 1
-
+private fun List<Point2D>.StringRepresentation(): String {
+    val expandedWidth = maxOf { it.x } + 1
+    val expandedHeight = maxOf { it.y } + 1
 
     val outMeDo = (0 until expandedHeight).map { y ->
         (0 until expandedWidth).map { x ->
-            if (Point2D(x, y) in expandedStars) '#' else '.'
+            if (Point2D(x, y) in this) '#' else '.'
         }.joinToString("")
     }.joinToString("\n")
     return outMeDo
 }
 
-private fun parseAndExpand(input: List<String>): List<Point2D> {
-    val unexpandedStars = input.withIndex().flatMap { (y, line) ->
+private fun List<String>.parseAndExpand(
+    factor: Long = 2
+): List<Point2D> {
+    val unexpandedStars = withIndex().flatMap { (y, line) ->
         line.withIndex().map { (x, c) ->
             if (c == '#') {
-                Point2D(x, y)
+                Point2D(x.toLong(), y.toLong())
             } else {
                 null
             }
@@ -58,31 +56,36 @@ private fun parseAndExpand(input: List<String>): List<Point2D> {
         if (blankRow) y else null
     }.filterNotNull()
 
-    println("blank rows: ${blankRows}")
-    println("blank cols: ${blankCols}")
-
-
     val expandedStars = unexpandedStars.map { star ->
-        val expandX = blankCols.count { it < star.x }
-        val expandY = blankRows.count { it < star.y }
-
-        println("expanding: $star")
-        println("$expandX $expandY")
-
-        println("${Point2D(star.x + expandX, star.y + expandY)}")
+        val expandX = (blankCols.count { it < star.x }) * (factor - 1)
+        val expandY = (blankRows.count { it < star.y }) * (factor - 1)
 
         Point2D(star.x + expandX, star.y + expandY)
     }
     return expandedStars
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
+private fun part2(input: List<String>, factor: Long): Long {
+    val expandedStars = input.parseAndExpand(factor)
+
+    expandedStars
+        .sortedBy { it.y }
+        .forEach {
+        println(it)
+    }
+
+    val twiceTotalDistance = expandedStars.map { thisStar ->
+        expandedStars.map { thatStar ->
+            thisStar.manhattenDistanceTo(thatStar)
+        }.sum()
+    }.sum()
+
+    return twiceTotalDistance / 2
 }
 
 data class Point2D(
-    val x: Int,
-    val y: Int
+    val x: Long,
+    val y: Long
 ) {
     fun manhattenDistanceTo(that: Point2D) = abs(this.x - that.x) + abs(this.y - that.y)
 }
@@ -98,15 +101,26 @@ class Day11Test {
     fun `part 1 with real input`() {
         part1(readInputFileToList("day11.txt")) shouldBe 9608724
     }
+    @Test
+    fun `part 2 with test input, factor is 10`() {
+        part2(testInput, 10) shouldBe 1030L
+    }
+    @Test
+    fun `part 2 with test input, factor is 100`() {
+        part2(testInput, 100) shouldBe 8410L
+    }
 
     @Test
-    fun `lolz`() {
-        val input = testInput
-        val expandedStars = parseAndExpand(input)
-        val outMeDo = gimmeAStringRepresentation(expandedStars)
+    fun `part 2 with real input`() {
+        part2(readInputFileToList("day11.txt"), factor = 1000000) shouldBe -1
+    }
 
 
-        outMeDo shouldBe
+    @Test
+    fun `expand by 1`() {
+        testInput
+            .parseAndExpand()
+            .StringRepresentation() shouldBe
                 """
                     ....#........
                     .........#...
@@ -123,19 +137,42 @@ class Day11Test {
                 """.trimIndent()
     }
 
-//
-//
-//    @Ignore
+    @Test
+    fun `expand by 2`() {
+        testInput
+            .parseAndExpand()
+            .StringRepresentation() shouldBe
+                """
+                    ....#........
+                    .........#...
+                    #............
+                    .............
+                    .............
+                    ........#....
+                    .#...........
+                    ............#
+                    .............
+                    .............
+                    .........#...
+                    #....#.......
+                """.trimIndent()
+    }
+
+
 //    @Test
-//    fun `part 2 with test input`() {
-//        part2(testInput) shouldBe -1
+//    fun `expand very small test input by 2`() {
+//        testInputVerySmall
+//            .parseAndExpand(factor = 2)
+//            .StringRepresentation() shouldBe
+//                """
+//                    ....
+//                    ....
+//                    ....
+//                    ...#
+//                """.trimIndent()
 //    }
-//
-//    @Ignore
-//    @Test
-//    fun `part 2 with real input`() {
-//        part2(readInputFileToList("day_template.txt")) shouldBe -1
-//    }
+
+
 }
 
 val testInput =
@@ -150,4 +187,11 @@ val testInput =
         ..........
         .......#..
         #...#.....
+    """.trimIndent().lines()
+
+val testInputVerySmall =
+    """
+        ...
+        .#.
+        ...
     """.trimIndent().lines()

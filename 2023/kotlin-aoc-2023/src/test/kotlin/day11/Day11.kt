@@ -132,7 +132,7 @@ class Day11Test {
     }
 
     @Test
-    fun `expand by 1`() {
+    fun `expand by default`() {
         testInput
             .parseAndExpand()
             .StringRepresentation() shouldBe

@@ -8,6 +8,18 @@ import kotlin.test.Test
 private fun part1(input: List<String>): Long {
     val expandedStars = input.parseAndExpand()
 
+//    return totalPairwiseDistance(expandedStars)
+    return totalPairwiseDistanceTheCleverWay(expandedStars)
+}
+
+private fun part2(input: List<String>, factor: Long): Long {
+    val expandedStars = input.parseAndExpand(factor)
+
+//    return totalPairwiseDistance(expandedStars)
+    return totalPairwiseDistanceTheCleverWay(expandedStars)
+}
+
+private fun totalPairwiseDistance(expandedStars: List<Point2D>): Long {
     val twiceTotalDistance = expandedStars.map { thisStar ->
         expandedStars.map { thatStar ->
             thisStar.manhattenDistanceTo(thatStar)
@@ -15,6 +27,25 @@ private fun part1(input: List<String>): Long {
     }.sum()
 
     return twiceTotalDistance / 2
+}
+
+private fun totalPairwiseDistanceTheCleverWay(expandedStars: List<Point2D>): Long {
+    val n = expandedStars.size
+    val totalXDistance =
+        expandedStars
+            .map { it.x }
+            .sorted()
+            .withIndex()
+            .sumOf { (i, x) -> i * x - (n - 1 - i) * x }
+
+    val totalYDistance: Long =
+        expandedStars
+            .map { it.y }
+            .sorted()
+            .withIndex()
+            .sumOf { (i, y) -> i * y - (n - 1 - i) * y }
+
+    return totalXDistance + totalYDistance
 }
 
 private fun List<Point2D>.StringRepresentation(): String {
@@ -32,55 +63,40 @@ private fun List<Point2D>.StringRepresentation(): String {
 private fun List<String>.parseAndExpand(
     factor: Long = 2
 ): List<Point2D> {
-    val unexpandedStars = withIndex().flatMap { (y, line) ->
-        line.withIndex().map { (x, c) ->
-            if (c == '#') {
-                Point2D(x.toLong(), y.toLong())
-            } else {
-                null
-            }
-        }
-    }.filterNotNull()
-        .toSet()
+    val unexpandedStars =
+        withIndex()
+            .flatMap { (y, line) ->
+                line.withIndex().map { (x, c) ->
+                    if (c == '#') {
+                        Point2D(x.toLong(), y.toLong())
+                    } else {
+                        null
+                    }
+                }
+            }.filterNotNull()
+            .toSet()
 
     val unexpandedWidth = unexpandedStars.maxOf { it.x } + 1
     val unexpandedHeight = unexpandedStars.maxOf { it.y } + 1
 
-    val blankCols = (0 until unexpandedWidth).map { x ->
-        val blankCol = unexpandedStars.none { it.x == x }
-        if (blankCol) x else null
-    }.filterNotNull()
+    val blankCols =
+        (0 until unexpandedWidth)
+            .map { x ->
+                if (unexpandedStars.none { it.x == x }) x else null
+            }.filterNotNull()
 
-    val blankRows = (0 until unexpandedHeight).map { y ->
-        val blankRow = unexpandedStars.none { it.y == y }
-        if (blankRow) y else null
-    }.filterNotNull()
+    val blankRows =
+        (0 until unexpandedHeight)
+            .map { y ->
+                if (unexpandedStars.none { it.y == y }) y else null
+            }.filterNotNull()
 
-    val expandedStars = unexpandedStars.map { star ->
+    return unexpandedStars.map { star ->
         val expandX = (blankCols.count { it < star.x }) * (factor - 1)
         val expandY = (blankRows.count { it < star.y }) * (factor - 1)
 
         Point2D(star.x + expandX, star.y + expandY)
     }
-    return expandedStars
-}
-
-private fun part2(input: List<String>, factor: Long): Long {
-    val expandedStars = input.parseAndExpand(factor)
-
-    expandedStars
-        .sortedBy { it.y }
-        .forEach {
-        println(it)
-    }
-
-    val twiceTotalDistance = expandedStars.map { thisStar ->
-        expandedStars.map { thatStar ->
-            thisStar.manhattenDistanceTo(thatStar)
-        }.sum()
-    }.sum()
-
-    return twiceTotalDistance / 2
 }
 
 data class Point2D(
@@ -112,9 +128,8 @@ class Day11Test {
 
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day11.txt"), factor = 1000000) shouldBe -1
+        part2(readInputFileToList("day11.txt"), factor = 1000000) shouldBe 904633799472L
     }
-
 
     @Test
     fun `expand by 1`() {
@@ -157,22 +172,6 @@ class Day11Test {
                     #....#.......
                 """.trimIndent()
     }
-
-
-//    @Test
-//    fun `expand very small test input by 2`() {
-//        testInputVerySmall
-//            .parseAndExpand(factor = 2)
-//            .StringRepresentation() shouldBe
-//                """
-//                    ....
-//                    ....
-//                    ....
-//                    ...#
-//                """.trimIndent()
-//    }
-
-
 }
 
 val testInput =
@@ -187,11 +186,4 @@ val testInput =
         ..........
         .......#..
         #...#.....
-    """.trimIndent().lines()
-
-val testInputVerySmall =
-    """
-        ...
-        .#.
-        ...
     """.trimIndent().lines()

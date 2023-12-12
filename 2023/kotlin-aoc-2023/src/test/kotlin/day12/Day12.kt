@@ -7,50 +7,54 @@ import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 private fun part1(input: List<String>): Int {
+    val records = input.map { it.parseLine() }
 
-    val tharLines = input.map { it.parseLine() }
-
-    val lalala = tharLines.map { (springs, nums) -> findNumValidSubstitutions(springs, nums) }
-
-    return lalala.sum()
+    return records.map { findNumValidSubstitutions(it) }.sum()
 }
 
-fun findNumValidSubstitutions(springs: String, nums: List<Int>): Int {
-    val ston = allSubstitutions(springs).count { it.isValidAccordingTo(nums) }
-    return ston
+fun findNumValidSubstitutions(record: ConditionRecord): Int {
+    return allSubstitutionsBruteForce(record.springs).count { it.isValidAccordingTo(record.groups) }
 }
 
 val springsRegex = "(#+)".toRegex()
 private fun String.isValidAccordingTo(nums: List<Int>): Boolean {
-    val matches = springsRegex.findAll(this)
-
-    val lengths = matches.map { it.value.length }.toList()
+    val lengths = springsRegex.findAll(this).map { it.value.length }.toList()
 
     return lengths == nums
 }
 
-private fun String.parseLine(): Pair<String, List<Int>> {
-    val r = "^([?.#]+) ([0-9,]+)$".toRegex()
-
-    val (springs, numsString) = this.parseUsingRegex(r)
-
-    val ns = numsString.toIntList(separator = ",")
-
-    return Pair(springs, ns)
+private fun String.parseLine(): ConditionRecord {
+    return ConditionRecord.of(this)
 }
 
-fun allSubstitutions(springs: String): Sequence<String> {
+data class ConditionRecord(
+    val springs: String,
+    val groups: List<Int>
+) {
+    companion object {
+        val regex = "^([?.#]+) ([0-9,]+)$".toRegex()
+
+        fun of(s: String): ConditionRecord {
+            val (springs, numsString) = s.parseUsingRegex(regex)
+
+            return ConditionRecord(
+                springs,
+                numsString.toIntList(separator = ",")
+            )
+        }
+    }
+}
+
+fun allSubstitutionsBruteForce(springs: String): Sequence<String> {
     val numWildcards = springs.count { it == '?' }
 
     val numPossibilities = 1.shl(numWildcards)
-
-    println("numposs $numPossibilities")
 
     return sequence {
         for (poss in (0 until numPossibilities)) {
             val sb = StringBuffer()
             var hashIndex = 0
-            springs.withIndex().forEach { (i, c) ->
+            springs.forEach { c ->
                 if (c == '?') {
                     val replacement = if ((1.shl(hashIndex) and poss) != 0) '#' else '.'
                     sb.append(replacement)
@@ -77,7 +81,7 @@ class Day12Test {
 
     @Test
     fun `part 1 with real input`() {
-        part1(readInputFileToList("day12.txt")) shouldBe -1
+        part1(readInputFileToList("day12.txt")) shouldBe 7705
     }
 //
 //    @Ignore
@@ -95,20 +99,19 @@ class Day12Test {
     @Test
     fun `substitutions are sane for single wildcard`() {
 //        allSubstitutions("?").toSet() shouldBe setOf(".", "#")
-        allSubstitutions("#?#").toSet() shouldBe setOf("#.#", "###")
-
+        allSubstitutionsBruteForce("#?#").toSet() shouldBe setOf("#.#", "###")
     }
 
     @Test
     fun `substitutions are sane with two wildcards`() {
-        allSubstitutions("??").toSet() shouldBe setOf("..", ".#", "#.", "##")
-        allSubstitutions("?.?").toSet() shouldBe setOf("...", "..#", "#..", "#.#")
+        allSubstitutionsBruteForce("??").toSet() shouldBe setOf("..", ".#", "#.", "##")
+        allSubstitutionsBruteForce("?.?").toSet() shouldBe setOf("...", "..#", "#..", "#.#")
     }
 
     @Test
     fun `detects valid spring strings`() {
         ".#...#....###".isValidAccordingTo("1,1,3".toIntList()) shouldBe true
-//        "#####...#.##.###".isValidAccordingTo("5,1,2,3".toIntList()) shouldBe true
+        "#####...#.##.###".isValidAccordingTo("5,1,2,3".toIntList()) shouldBe true
     }
 
     @Test
@@ -118,19 +121,12 @@ class Day12Test {
     }
 
     @Test
-    fun `ston`() {
+    fun `this record only has one possible substitution`() {
         val (springs, nums) = "???.### 1,1,3".parseLine()
 
-        val subs = allSubstitutions(springs).toList()
-
-        println(subs.size)
-
-//        subs.forEach {
-//            println(it)
-//        }
+        val subs = allSubstitutionsBruteForce(springs).toList()
 
         val validSubs = subs.filter { it.isValidAccordingTo(nums) }
-        println(validSubs)
 
         validSubs.size shouldBe 1
     }

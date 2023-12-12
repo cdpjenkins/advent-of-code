@@ -9,4 +9,5 @@ object ListUtils {
 
     fun parseSpaceSeparatedNumberList(it: String): List<Long> = it.split(" ").map { it.toLong() }
 
+    fun String.toIntList(separator: String = ","): List<Int> = this.split(separator).map { it.toInt() }
 }

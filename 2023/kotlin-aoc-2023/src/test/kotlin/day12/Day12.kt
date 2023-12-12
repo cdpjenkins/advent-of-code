@@ -227,7 +227,7 @@ class Day12Test {
 
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day12.txt")) shouldBe -1
+        part2(readInputFileToList("day12.txt")) shouldBe 50338344809230
     }
 
     @Test
@@ -267,12 +267,12 @@ class Day12Test {
 
     @Test
     fun `can find num substitutions the clever way for v simple input2`() {
-//        ConditionRecord.of("? 1").numSubstitutionsTheCleverWay() shouldBe 1
-//        ConditionRecord.of("?? 2").numSubstitutionsTheCleverWay() shouldBe 1
-//        ConditionRecord.of(".? 2").numSubstitutionsTheCleverWay() shouldBe 0
+        ConditionRecord.of("? 1").numSubstitutionsTheCleverWay() shouldBe 1
+        ConditionRecord.of("?? 2").numSubstitutionsTheCleverWay() shouldBe 1
+        ConditionRecord.of(".? 2").numSubstitutionsTheCleverWay() shouldBe 0
         ConditionRecord.of("#? 2").numSubstitutionsTheCleverWay() shouldBe 1
-//        ConditionRecord.of(".? 1").numSubstitutionsTheCleverWay() shouldBe 1
-//        ConditionRecord.of("??? 3").numSubstitutionsTheCleverWay() shouldBe 1
+        ConditionRecord.of(".? 1").numSubstitutionsTheCleverWay() shouldBe 1
+        ConditionRecord.of("??? 3").numSubstitutionsTheCleverWay() shouldBe 1
     }
 
     @Test

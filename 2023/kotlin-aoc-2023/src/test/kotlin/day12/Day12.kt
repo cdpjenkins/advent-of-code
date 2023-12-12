@@ -5,7 +5,6 @@ import ListUtils.toIntList
 import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import kotlin.test.Ignore
 
 private fun part1(input: List<String>): Long {
     val records = input.map { it.parseLine() }
@@ -51,7 +50,6 @@ data class ParserState(
     val springsInGroup: Int,
     val groupIndex: Int,
     val totalWildcardsConsumed: Int,
-    val str:String  = ""
 ) {
     fun consume(c: Char): ParserState {
 //        println("say ${c}")
@@ -62,7 +60,6 @@ data class ParserState(
                     i = tempi,
                     currentlyConsumingAGroup = false,
                     groupIndex = groupIndex,
-                    str = str + c
                 )
             }
             '#' -> {
@@ -71,7 +68,6 @@ data class ParserState(
                     currentlyConsumingAGroup = true,
                     springsInGroup = if (currentlyConsumingAGroup) springsInGroup + 1 else 1,
                     groupIndex = if (currentlyConsumingAGroup) groupIndex else groupIndex + 1,
-                    str = str + c
                 )
             }
             else -> {
@@ -82,7 +78,6 @@ data class ParserState(
         }
     }
 }
-
 
 data class ConditionRecord(
     val springs: String,
@@ -99,15 +94,16 @@ data class ConditionRecord(
             totalWildcardsConsumed = 0
         )
 
+        val cache: HashMap<ParserState, Long> = hashMapOf()
 
-        return findAllTheSubstitutionsInnit(initialState)
+        return findAllTheSubstitutionsInnit(initialState, cache)
     }
 
     fun spaces(n: Int): String {
         return (0..n).map { " " }.joinToString()
     }
 
-    private fun findAllTheSubstitutionsInnit(state: ParserState): Long {
+    private fun findAllTheSubstitutionsInnit(state: ParserState, cache: HashMap<ParserState, Long>): Long {
 
 //        println("${spaces(state.i)}$state")
 
@@ -150,18 +146,26 @@ data class ConditionRecord(
 
 //        println("${spaces(state.i)} consume ${springs[state.i]}")
 
+        if (state in cache.keys) {
+            return cache[state]!!
+        } else {
 
-        return when (springs[state.i]) {
-            '?' -> {
-                val consumed = state.copy(
-                    totalWildcardsConsumed = state.totalWildcardsConsumed + 1,
-                )
-                findAllTheSubstitutionsInnit(consumed.consume('.')) +
-                        findAllTheSubstitutionsInnit(consumed.consume('#'))
+            val result = when (springs[state.i]) {
+                '?' -> {
+                    val consumed = state.copy(
+                        totalWildcardsConsumed = state.totalWildcardsConsumed + 1,
+                    )
+                    findAllTheSubstitutionsInnit(consumed.consume('.'), cache) +
+                            findAllTheSubstitutionsInnit(consumed.consume('#'), cache)
+                }
+
+                else -> {
+                    findAllTheSubstitutionsInnit(state.consume(springs[state.i]), cache)
+                }
             }
-            else -> {
-                findAllTheSubstitutionsInnit(state.consume(springs[state.i]))
-            }
+            cache[state] = result
+
+            return result
         }
     }
 

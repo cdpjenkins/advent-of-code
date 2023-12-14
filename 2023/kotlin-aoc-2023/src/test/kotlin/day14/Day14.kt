@@ -30,10 +30,6 @@ private fun part2(input: List<String>): Int {
     return billionthPattern.loadOnNorthSupportBeam()
 }
 
-private fun Platform.loadOnNorthSupportBeam(): Int {
-    return roundedRocks.sumOf { height - it.y }
-}
-
 private fun findAndPrintCycles(platform: Platform): List<IndexedValue<Platform>> {
     val seqMeDo = generateSequence(platform) { it.spinCycle() }
         .withIndex()
@@ -52,7 +48,61 @@ private fun findAndPrintCycles(platform: Platform): List<IndexedValue<Platform>>
     return seqMeDo
 }
 
-data class Platform(val width: Int, val height: Int, val roundedRocks: Set<Pos>, val cubeRocks: Set<Pos>) {
+data class Platform(
+    val width: Int,
+    val height: Int,
+    val roundedRocks: Set<Pos>,
+    val cubeRocks: Set<Pos>,
+) {
+    fun loadOnNorthSupportBeam() = roundedRocks.sumOf { height - it.y }
+
+    fun roll(direction: Direction): Platform {
+        val sortedRespectDue = roundedRocks.sortedWith(direction.comparator())
+        return this.roll(sortedRespectDue, direction)
+    }
+
+    private fun roll(sortedRoundedRocks: List<Pos>, direction: Direction): Platform =
+        if (sortedRoundedRocks.isEmpty()) {
+            this
+        } else {
+            val roundedRock = sortedRoundedRocks.first()
+            this.rollOneRock(roundedRock, direction).roll(sortedRoundedRocks.drop(1), direction)
+        }
+
+    fun rollOneRock(roundedRock: Pos, function: Direction) =
+        this.copy(roundedRocks = roundedRocks - roundedRock + rockRollsTo(roundedRock, function))
+
+    fun rockRollsTo(roundedRock: Pos, direction: Direction): Pos =
+        generateSequence(roundedRock) { it -> direction(it)}
+            .drop(1)
+            .takeWhile { pos -> !(pos in roundedRocks) && !(pos in cubeRocks) && isInBounds(pos) }
+            .lastOrNull()
+            ?: roundedRock
+
+    private fun isInBounds(pos: Pos) =
+        pos.x in (0 until width) &&
+                pos.y in (0 until height)
+
+    fun string(): String {
+        return (0 until height).map { y ->
+            (0 until width).map { x ->
+                val pos = Pos(x, y)
+                when (pos) {
+                    in roundedRocks -> 'O'
+                    in cubeRocks -> '#'
+                    else -> '.'
+                }
+            }.joinToString("")
+        }.joinToString("\n")
+    }
+
+    fun spinCycle(): Platform {
+        return this.roll(Direction.north)
+            .roll(Direction.west)
+            .roll(Direction.south)
+            .roll(Direction.east)
+    }
+
     companion object {
         fun of(input: List<String>): Platform {
             val roundedRocks = input.withIndex().flatMap { (y, line) ->
@@ -83,52 +133,6 @@ data class Platform(val width: Int, val height: Int, val roundedRocks: Set<Pos>,
             val platform = Platform(width, height, roundedRocks, cubeRocks)
             return platform
         }
-    }
-    fun roll(direction: Direction): Platform {
-        val sortedRespectDue = roundedRocks.sortedWith(direction.comparator())
-        return this.roll(sortedRespectDue, direction)
-    }
-
-    private fun roll(sortedRoundedRocks: List<Pos>, direction: Direction): Platform =
-        if (sortedRoundedRocks.isEmpty()) {
-            this
-        } else {
-            val roundedRock = sortedRoundedRocks.first()
-            this.rollOneRock(roundedRock, direction).roll(sortedRoundedRocks.drop(1), direction)
-        }
-
-    fun rollOneRock(roundedRock: Pos, function: Direction) =
-        this.copy(roundedRocks = roundedRocks - roundedRock + rockRollsTo(roundedRock, function))
-
-    fun rockRollsTo(roundedRock: Pos, direction: Direction): Pos =
-        generateSequence(roundedRock) { it -> direction(it)}
-            .drop(1)
-            .takeWhile { pos -> !(pos in roundedRocks) && !(pos in cubeRocks) && isInBounds(pos) }
-            .lastOrNull()
-            ?: roundedRock
-
-    private fun isInBounds(pos: Pos) =
-        pos.x in (0 until width) &&
-        pos.y in (0 until height)
-
-    fun string(): String {
-        return (0 until height).map { y ->
-            (0 until width).map { x ->
-                val pos = Pos(x, y)
-                when (pos) {
-                    in roundedRocks -> 'O'
-                    in cubeRocks -> '#'
-                    else -> '.'
-                }
-            }.joinToString("")
-        }.joinToString("\n")
-    }
-
-    fun spinCycle(): Platform {
-        return this.roll(Direction.north)
-            .roll(Direction.west)
-            .roll(Direction.south)
-            .roll(Direction.east)
     }
 }
 

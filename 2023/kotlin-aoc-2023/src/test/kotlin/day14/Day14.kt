@@ -83,8 +83,8 @@ data class Platform(
         pos.x in (0 until width) &&
                 pos.y in (0 until height)
 
-    fun string(): String {
-        return (0 until height).map { y ->
+    fun string(): String =
+        (0 until height).map { y ->
             (0 until width).map { x ->
                 val pos = Pos(x, y)
                 when (pos) {
@@ -94,14 +94,12 @@ data class Platform(
                 }
             }.joinToString("")
         }.joinToString("\n")
-    }
 
-    fun spinCycle(): Platform {
-        return this.roll(Direction.north)
+    fun spinCycle() =
+        this.roll(Direction.north)
             .roll(Direction.west)
             .roll(Direction.south)
             .roll(Direction.east)
-    }
 
     companion object {
         fun of(input: List<String>): Platform {

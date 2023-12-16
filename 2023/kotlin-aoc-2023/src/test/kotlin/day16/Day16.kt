@@ -13,7 +13,13 @@ private fun part1(input: List<String>): Int {
 }
 
 private fun findNumEnergisedTiles(grid: Grid, pos: Pos, direction: Direction): Int {
-    grid.shineALightIn(BeamSegment(pos, direction))
+    val beamSegment = BeamSegment(pos, direction)
+
+    if (beamSegment in grid.exitNodes) {
+        return 0
+    }
+
+    grid.shineALightIn(beamSegment)
 
     val result = grid.squares.values.count { it.energised }
 
@@ -22,31 +28,30 @@ private fun findNumEnergisedTiles(grid: Grid, pos: Pos, direction: Direction): I
 
 private fun part2(input: List<String>): Int {
 
+    val exitNodes = mutableSetOf<BeamSegment>()
+
     val up = (0 until 110).map {
-        val grid = parseInput(input)
+        val grid = parseInput(input).copy(exitNodes = exitNodes)
         findNumEnergisedTiles(grid, Pos(it, 110-1), Direction.UP)
     }
 
    val down =  (0 until 110).map {
-        val grid = parseInput(input)
+       val grid = parseInput(input).copy(exitNodes = exitNodes)
         findNumEnergisedTiles(grid, Pos(it, 0), Direction.DOWN)
     }
 
     val left = (0 until 110).map {
-        val grid = parseInput(input)
+        val grid = parseInput(input).copy(exitNodes = exitNodes)
         findNumEnergisedTiles(grid, Pos(110-1, it), Direction.LEFT)
     }
 
     val right = (0 until 110).map {
-        val grid = parseInput(input)
+        val grid = parseInput(input).copy(exitNodes = exitNodes)
         findNumEnergisedTiles(grid, Pos(0, it), Direction.RIGHT)
     }
 
     val results = up + down + left + right
 
-//    results.forEach { println(it) }
-
-//    return results.max()
     return results.max()
 }
 
@@ -62,15 +67,20 @@ private fun parseInput(input: List<String>): Grid {
     return grid
 }
 
-data class Grid(val squares: Map<Pos, Square>) {
+data class Grid(
+    val squares: Map<Pos, Square>,
+    val exitNodes: MutableSet<BeamSegment> = mutableSetOf()
+) {
     val width = squares.keys.maxOf { it.x } + 1
     val height = squares.keys.maxOf { it.y } + 1
 
     fun shineALightIn(beamSegment: BeamSegment) {
         val square = squares[beamSegment.pos]
 
-        if (square == null) {
-            // meh we are done here
+        if (hasExitedTheBuilding(beamSegment) || square == null) {
+            val toAdd = beamSegment.previous().reverse()
+
+            exitNodes.add(toAdd)
         } else {
             // could totally us polymorphism for this...
             val moarBeamSegments = square.beamHitsSquare(beamSegment)
@@ -78,11 +88,21 @@ data class Grid(val squares: Map<Pos, Square>) {
             moarBeamSegments.forEach { shineALightIn(it) }
         }
     }
+
+    private fun hasExitedTheBuilding(segment: BeamSegment) =
+        (segment.pos.x == -1 && segment.direction == Direction.LEFT) ||
+                (segment.pos.x == width  && segment.direction == Direction.RIGHT )||
+                (segment.pos.y == -1 && segment.direction == Direction.UP) ||
+                (segment.pos.y == height  && segment.direction == Direction.DOWN)
 }
 
 data class Pos(val x: Int, val y: Int) {
     operator fun plus(direction: Direction): Pos {
         return Pos(x + direction.dx, y + direction.dy)
+    }
+
+    operator fun minus(direction: Direction): Pos {
+        return Pos(x - direction.dx, y - direction.dy)
     }
 }
 
@@ -212,6 +232,9 @@ data class BeamSegment(
     val pos: Pos,
     val direction: Direction
 ) {
+    fun previous() = BeamSegment(pos - direction, direction)
+    fun reverse() = BeamSegment(pos, direction.reverse())
+
     companion object {
         fun BeamSegment.move(newDirection: Direction) =
             BeamSegment(pos + newDirection, newDirection)
@@ -232,6 +255,14 @@ enum class Direction {
         override val dx: Int = 1
         override val dy: Int = 0
     };
+
+    fun reverse() =
+        when (this) {
+            UP -> DOWN
+            DOWN -> UP
+            LEFT -> RIGHT
+            RIGHT -> LEFT
+        }
 
     abstract val dx: Int
     abstract val dy: Int

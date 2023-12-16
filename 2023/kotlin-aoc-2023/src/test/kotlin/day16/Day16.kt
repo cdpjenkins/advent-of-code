@@ -256,7 +256,7 @@ class Day16Test {
 
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day16.txt")) shouldBe -1
+        part2(readInputFileToList("day16.txt")) shouldBe 7896
     }
 }
 

@@ -7,6 +7,50 @@ import org.junit.jupiter.api.Test
 
 private fun part1(input: List<String>): Int {
 
+    val grid = parseInput(input)
+
+    return findNumEnergisedTiles(grid, Pos(0, 0), Direction.RIGHT)
+}
+
+private fun findNumEnergisedTiles(grid: Grid, pos: Pos, direction: Direction): Int {
+    grid.shineALightIn(BeamSegment(pos, direction))
+
+    val result = grid.squares.values.count { it.energised }
+
+    return result
+}
+
+private fun part2(input: List<String>): Int {
+
+    val up = (0 until 110).map {
+        val grid = parseInput(input)
+        findNumEnergisedTiles(grid, Pos(it, 110-1), Direction.UP)
+    }
+
+   val down =  (0 until 110).map {
+        val grid = parseInput(input)
+        findNumEnergisedTiles(grid, Pos(it, 0), Direction.DOWN)
+    }
+
+    val left = (0 until 110).map {
+        val grid = parseInput(input)
+        findNumEnergisedTiles(grid, Pos(110-1, it), Direction.LEFT)
+    }
+
+    val right = (0 until 110).map {
+        val grid = parseInput(input)
+        findNumEnergisedTiles(grid, Pos(0, it), Direction.RIGHT)
+    }
+
+    val results = up + down + left + right
+
+//    results.forEach { println(it) }
+
+//    return results.max()
+    return results.max()
+}
+
+private fun parseInput(input: List<String>): Grid {
     val squares = input.withIndex().flatMap { (y, line) ->
         line.withIndex().map { (x, c) ->
             val pos = Pos(x, y)
@@ -15,19 +59,13 @@ private fun part1(input: List<String>): Int {
     }.toMap()
 
     val grid = Grid(squares)
-
-    grid.shineALightIn(BeamSegment(Pos(0, 0), Direction.RIGHT))
-
-    val result = grid.squares.values.count { it.energised }
-
-    return result
-}
-
-private fun part2(input: List<String>): Int {
-    return 123
+    return grid
 }
 
 data class Grid(val squares: Map<Pos, Square>) {
+    val width = squares.keys.maxOf { it.x } + 1
+    val height = squares.keys.maxOf { it.y } + 1
+
     fun shineALightIn(beamSegment: BeamSegment) {
         val square = squares[beamSegment.pos]
 
@@ -208,20 +246,18 @@ class Day16Test {
 
     @Test
     fun `part 1 with real input`() {
-        part1(readInputFileToList("day16.txt")) shouldBe -1
+        part1(readInputFileToList("day16.txt")) shouldBe 7482
     }
 
-//    @Ignore
-//    @Test
-//    fun `part 2 with test input`() {
-//        part2(testInput) shouldBe -1
-//    }
-//
-//    @Ignore
-//    @Test
-//    fun `part 2 with real input`() {
-//        part2(readInputFileToList("day_template.txt")) shouldBe -1
-//    }
+    @Test
+    fun `part 2 with test input`() {
+        part2(testInput) shouldBe 51
+    }
+
+    @Test
+    fun `part 2 with real input`() {
+        part2(readInputFileToList("day16.txt")) shouldBe -1
+    }
 }
 
 val testInput =

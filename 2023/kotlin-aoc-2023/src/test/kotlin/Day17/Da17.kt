@@ -6,16 +6,17 @@ import org.junit.jupiter.api.Test
 import java.util.Comparator
 import java.util.PriorityQueue
 import kotlin.math.abs
+import kotlin.test.Ignore
 
 private fun part1(input: List<String>): Int {
-
     val grid = Grid.of(input)
-
     val shortestPath = grid.shortestPath()
 
-    println(shortestPath)
-
     return shortestPath.drop(1).sumOf { grid.cost[it.pos]!! }
+}
+
+private fun part2(input: List<String>): Int {
+    return 123
 }
 
 data class Node(
@@ -102,19 +103,16 @@ data class Grid(val cost: Map<Pos, Int>) {
     val target: Pos = Pos(width - 1, height - 1)
 
     private fun heuristic(a: Pos): Int {
+        // this turns the algo from A* into Dijkstra's ... oops
         return 0 //a.manhattenDistanceTo(target)
     }
 
     fun shortestPath(): List<Node> {
         // A* FTW
-
         val startNode = Node(startPos, Direction.RIGHT, 3)
 
-        // came from
         val previousMap: MutableMap<Node, Node> = mutableMapOf()
-
         val gScore: MutableMap<Node, Int> = mutableMapOf(startNode to 0)
-
         val fScore: MutableMap<Node, Int> = mutableMapOf(startNode to heuristic(startNode.pos))
 
         val openSet: PriorityQueue<Node> = PriorityQueue(Comparator { o1, o2 -> fScore[o1]!! - fScore[o2]!! })
@@ -178,33 +176,6 @@ data class Grid(val cost: Map<Pos, Int>) {
         }.joinToString("\n")
     }
 
-    private fun Pos.isLegalBasedOn(current: Pos, previous: MutableMap<Pos, Pos>): Boolean {
-
-        if (previous[current] == null) {
-            return true
-        } else if (previous[previous[current]!!] ==  null) {
-            return true
-        } else if (previous[previous[previous[current]!!]!!] == null) {
-            return true
-        }
-
-        val lastFiveBlocks = listOf(
-            previous[previous[previous[current]!!]!!]!!,
-            previous[previous[current]!!]!!,
-            previous[current]!!,
-            current,
-            this
-        )
-
-        return if (lastFiveBlocks.all { it.x == lastFiveBlocks[0].x }) {
-            false
-        } else if (lastFiveBlocks.all { it.y == lastFiveBlocks[0].y }) {
-            false
-        } else {
-            true
-        }
-    }
-
     companion object {
         fun of(input: List<String>): Grid {
             val values = input.withIndex().flatMap { (y, line) ->
@@ -218,11 +189,6 @@ data class Grid(val cost: Map<Pos, Int>) {
     }
 }
 
-
-private fun part2(input: List<String>): Int {
-    return 123
-}
-
 class Day17Test {
     @Test
     fun `part 1 with test input`() {
@@ -231,19 +197,17 @@ class Day17Test {
 
     @Test
     fun `part 1 with real input`() {
-        part1(readInputFileToList("day17.txt")) shouldBe -1
+        part1(readInputFileToList("day17.txt")) shouldBe 722
     }
-//
-//    @Ignore
+
 //    @Test
 //    fun `part 2 with test input`() {
 //        part2(testInput) shouldBe -1
 //    }
 //
-//    @Ignore
 //    @Test
 //    fun `part 2 with real input`() {
-//        part2(readInputFileToList("day_template.txt")) shouldBe -1
+//        part2(readInputFileToList("day17.txt")) shouldBe -1
 //    }
 
     @Test
@@ -289,45 +253,7 @@ class Day17Test {
     }
 
     @Test
-    fun `lalala`() {
-
-
-        //0 6
-        //5 9
-        //11 15
-        //16 18
-        //33 25
-        //38 41
-        //44 44
-        //47 49
-
-        // f
-        //   36   0 6
-        //   54   5 9
-        //   66   11 15
-        //   53   16 18
-        //   87   33 25
-        //   53   38 41
-        //   63   44 44
-        //   35   47 49
-        //   33   xx 52
-
-
-
-
-
-
-        // g
-        //   36   0 6
-        //   54   5 9
-        //   66   11 15
-        //   53   16 18
-        //   87   33 25
-        //   53   38 41
-        //   63   44 44
-        //   35   47 49
-        //   33   x  52
-
+    fun `can find a path on interesting but simple input`() {
         val grid = Grid.of(
             """
                 36
@@ -341,11 +267,6 @@ class Day17Test {
                 33
             """.trimIndent().lines()
         )
-
-        val shortestPath = grid.shortestPath()
-        println(shortestPath.sumOf { grid.cost[it.pos]!! } )
-
-        shortestPath.forEach { println(it) }
 
         grid.asStringWithPath(grid.shortestPath()) shouldBe
                 """

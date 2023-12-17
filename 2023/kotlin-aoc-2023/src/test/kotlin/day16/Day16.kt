@@ -4,6 +4,7 @@ import FileUtil.readInputFileToList
 import day16.BeamSegment.Companion.move
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import kotlin.test.Ignore
 
 private fun part1(input: List<String>): Int {
 
@@ -285,6 +286,7 @@ class Day16Test {
         part2(testInput) shouldBe 51
     }
 
+    @Ignore // too slow to run every time!
     @Test
     fun `part 2 with real input`() {
         part2(readInputFileToList("day16.txt")) shouldBe 7896

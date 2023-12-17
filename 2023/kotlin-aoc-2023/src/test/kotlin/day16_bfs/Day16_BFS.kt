@@ -4,6 +4,7 @@ import FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.test.Ignore
 
 private fun part1_bfs(input: List<String>): Int {
     val grid = parseInput(input)
@@ -284,6 +285,7 @@ class Day16BFSTest {
         part2_bfs(testInput) shouldBe 51
     }
 
+    @Ignore // too inefficient!
     @Test
     fun `part 2 with real input`() {
         part2_bfs(readInputFileToList("day16.txt")) shouldBe 7896

@@ -1,11 +1,23 @@
 package day20
 
+import FileUtil.readInputFileToList
 import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-private fun part1(input: List<String>): Int {
-    return 123
+private fun part1(input: List<String>): Long {
+    val modules = parseModules(input)
+
+    val (h, l) = pulseSequence(modules, numButtonPresses = 1000)
+        .fold(Pair<Long, Long>(0, 0)) { (h, l), pulse ->
+            if (pulse.type == PulseType.low) {
+                Pair(h, l+1)
+            } else {
+                Pair(h+1, l)
+            }
+        }
+
+    return h * l
 }
 
 private fun part2(input: List<String>): Int {
@@ -139,18 +151,43 @@ fun parseModules(input: List<String>): Map<String, Module> {
     return modules
 }
 
+fun pulseSequence(modules: Map<String, Module>, numButtonPresses: Int = 1) =
+    sequence {
+        val queue = ArrayDeque<Pulse>()
+
+        for (i in (0 until numButtonPresses)) {
+            queue.addLast(Pulse("button", PulseType.low, "broadcaster"))
+
+            while (queue.isNotEmpty()) {
+                val pulse = queue.removeFirst()
+
+                yield(pulse)
+
+                val destination = modules[pulse.destination]
+
+                val moarPulses = destination?.receivePulse(pulse) ?: listOf()
+
+                queue.addAll(moarPulses)
+            }
+        }
+    }
+
 class Day20Test {
 
     @Test
-    fun `part 1 with test input`() {
-        part1(simpleTestInput) shouldBe -1
+    fun `part 1 with simple test input`() {
+        part1(simpleTestInput) shouldBe 32000000L
     }
-//
-//    @Ignore
-//    @Test
-//    fun `part 1 with real input`() {
-//        part1(readInputFileToList("day_template.txt")) shouldBe -1
-//    }
+
+    @Test
+    fun `part 1 with less simple test input`() {
+        part1(testInput2) shouldBe 11687500
+    }
+
+    @Test
+    fun `part 1 with real input`() {
+        part1(readInputFileToList("day20.txt")) shouldBe 817896682L
+    }
 //
 //    @Ignore
 //    @Test
@@ -186,26 +223,43 @@ class Day20Test {
                 """.trimIndent()
     }
 
-    private fun pulseSequence(modules: Map<String, Module>, numButtonPresses: Int = 1) =
-        sequence {
-            val queue = ArrayDeque<Pulse>()
+    @Test
+    fun `less simple input does more interesting things`() {
+        val modules = parseModules(testInput2)
 
-            for (i in (0 until numButtonPresses)) {
-                queue.addLast(Pulse("button", PulseType.low, "broadcaster"))
-
-                while (queue.isNotEmpty()) {
-                    val pulse = queue.removeFirst()
-
-                    yield(pulse)
-
-                    val destination = modules[pulse.destination]!!
-
-                    val moarPulses = destination.receivePulse(pulse)
-
-                    queue.addAll(moarPulses)
-                }
-            }
-        }
+        pulseSequence(modules, numButtonPresses = 4).map { it.toLogString() }
+            .joinToString("\n") shouldBe
+                """
+                    button -low-> broadcaster
+                    broadcaster -low-> a
+                    a -high-> inv
+                    a -high-> con
+                    inv -low-> b
+                    con -high-> output
+                    b -high-> con
+                    con -low-> output
+                    button -low-> broadcaster
+                    broadcaster -low-> a
+                    a -low-> inv
+                    a -low-> con
+                    inv -high-> b
+                    con -high-> output
+                    button -low-> broadcaster
+                    broadcaster -low-> a
+                    a -high-> inv
+                    a -high-> con
+                    inv -low-> b
+                    con -low-> output
+                    b -low-> con
+                    con -high-> output
+                    button -low-> broadcaster
+                    broadcaster -low-> a
+                    a -low-> inv
+                    a -low-> con
+                    inv -high-> b
+                    con -high-> output
+                """.trimIndent()
+    }
 }
 
 val simpleTestInput =
@@ -215,4 +269,13 @@ val simpleTestInput =
         %b -> c
         %c -> inv
         &inv -> a
+    """.trimIndent().lines()
+
+val testInput2 =
+    """
+        broadcaster -> a
+        %a -> inv, con
+        &inv -> b
+        %b -> con
+        &con -> output
     """.trimIndent().lines()

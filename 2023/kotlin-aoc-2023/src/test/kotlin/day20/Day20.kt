@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test
 private fun part1(input: List<String>): Long {
     val modules = parseModules(input)
 
+//    modules.dumpGraph()
+
     val (h, l) = pulseSequence(modules, numButtonPresses = 1000)
         .fold(Pair<Long, Long>(0, 0)) { (h, l), pulse ->
             if (pulse.type == PulseType.low) {
@@ -20,8 +22,37 @@ private fun part1(input: List<String>): Long {
     return h * l
 }
 
+private fun Map<String, Module>.dumpGraph() {
+
+    println("digraph ston {")
+
+    this.forEach { (k, v) ->
+        val destinations = v.destinations
+            .map {
+                this[it]?.let { module ->
+                    "${module.type}_${module.name}"
+                } ?: it
+            }
+            .joinToString(", ")
+        println(" ${v.type}_${v.name} -> { $destinations }")
+    }
+
+    println("}")
+}
+
 private fun part2(input: List<String>): Int {
-    return 123
+    val modules = parseModules(input)
+
+//    modules.dumpGraph()
+
+    val (h, l) = pulseSequence(modules, numButtonPresses = 1000)
+        .fold(Pair<Long, Long>(0, 0)) { (h, l), pulse ->
+            if (pulse.type == PulseType.low) {
+                Pair(h, l+1)
+            } else {
+                Pair(h+1, l)
+            }
+        }
 }
 
 enum class PulseType {
@@ -38,6 +69,8 @@ sealed class Module(
     val name: String,
     val destinations: List<String>
 ) {
+    abstract val type: String
+
     fun receivePulse(pulse: Pulse): List<Pulse> {
         val pulse = Pulse(pulse.source, pulse.type, this.name)
 
@@ -78,6 +111,8 @@ class Conjunction(
     name: String,
     destinations: List<String>
 ) : Module(name, destinations) {
+    override val type = "conjunction"
+
     val receivedFromInputs: MutableMap<String, PulseType> = mutableMapOf()
 
     override fun internalReceivePulse(pulse: Pulse): PulseType? {
@@ -110,6 +145,8 @@ class FlipFlop(
     destinations: List<String>,
     var state: FlipFlopState = FlipFlopState.OFF
 ) : Module(name, destinations) {
+    override val type = "flipflop"
+
     override fun internalReceivePulse(pulse: Pulse): PulseType? {
         return when (pulse.type) {
             PulseType.high -> null
@@ -127,6 +164,8 @@ class FlipFlop(
 }
 
 class Broadcaster(destinations: List<String>) : Module("broadcaster", destinations) {
+    override val type = ""
+
     override fun internalReceivePulse(pulse: Pulse) = pulse.type
 }
 

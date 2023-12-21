@@ -4,23 +4,14 @@ import FileUtil.readInputFileToList
 import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import java.util.*
-import kotlin.math.max
-import kotlin.math.min
 
-private fun Pair<Int, Int>.sorted() = if (first < second) this else second to first
+private fun part1(input: List<String>): Long =
+    input.map { Instruction.parseUsingPart1Rules(it) }
+        .findAreaTheCleverWay()
 
-private fun part1(input: List<String>): Long {
-    val instructions = input.map { Instruction.parseUsingPart1Rules(it) }
-
-    return instructions.findAreaTheCleverWay()
-}
-
-private fun part2(input: List<String>): Long {
-    val instructions = input.map { Instruction.parseUsingPart2Rules(it) }
-
-    return instructions.findAreaTheCleverWay()
-}
+private fun part2(input: List<String>): Long =
+    input.map { Instruction.parseUsingPart2Rules(it) }
+        .findAreaTheCleverWay()
 
 private fun List<Instruction>.findAreaTheCleverWay(): Long {
     var x = 0L
@@ -52,169 +43,7 @@ private fun List<Instruction>.findAreaTheCleverWay(): Long {
         }
     }
 
-    println("area: $area")
-    println("perimeter length: " + perimeterLength)
-
     return area + (perimeterLength / 2) + 1
-}
-
-private fun part1_meh(input: List<String>): Int {
-    val lines = Line.parseToLines(input)
-
-    val verticalLines = lines.filter { it.direction == Direction.U || it.direction == Direction.D }
-
-    val sortedInterestingYs =
-        (verticalLines.map { it.start.y } +
-            verticalLines.map { it.end.y })
-            .toSet().sorted()
-
-    val yIntervals = sortedInterestingYs.zipWithNext().map { it.sorted() }
-
-    val slicedIntervals = sliceThoseIntervals(yIntervals)
-
-    val area = slicedIntervals.map { (start, end) ->
-        println("$start to $end")
-
-        val linesThatIntersect = verticalLines.filter { it.intersectsWith(y = start) }.sortedBy { it.start.x }.toList()
-
-        println(linesThatIntersect)
-
-        val horizThangs = horizontalRangeThingies(linesThatIntersect)
-
-        val horizontalGroundCovered = horizThangs.sumOf { it.endInclusive + 1 - it.start }
-
-        println(horizontalGroundCovered)
-
-        horizontalGroundCovered * (end + 1 - start)
-    }.sum()
-
-    val maxY = lines.filter { it.direction == Direction.L }.maxBy { it.start.y }
-    println("maxY: $maxY")
-
-    return area
-}
-
-// TODO meh just use pairs
-fun horizontalRangeThingies(inScope: List<Line>): List<IntRange> {
-    val rangeThingies = mutableListOf<IntRange>()
-    var remaining = inScope
-
-    while (remaining.isNotEmpty()) {
-        val startThang = remaining.first()
-        require(startThang.direction == Direction.U) {
-            println("bad thang: $inScope")
-            "urgh ${startThang}"
-        }
-        val gotRidOfAllTheStarts = remaining.
-            dropWhile { it.direction == Direction.U }
-        val endThang = gotRidOfAllTheStarts.takeWhile { it.direction == Direction.D }.last()
-
-        rangeThingies.add(startThang.start.x..endThang.start.x)
-        remaining = gotRidOfAllTheStarts.dropWhile { it.direction == Direction.D }
-    }
-
-    return rangeThingies.toList()
-}
-
-private fun sliceThoseIntervals(yIntervals: List<Pair<Int, Int>>): List<Pair<Int, Int>> {
-    val slicedIntervals: List<Pair<Int, Int>> = yIntervals.flatMap {
-        val (start, end) = it
-
-        if (end - start == 0) {
-            listOf(it)
-        } else if (end - start == 1) {
-            listOf(start to start)
-        } else {
-            listOf(start to start, (start + 1) to (end - 1))
-        }
-    } + (yIntervals.last().second to yIntervals.last().second)
-    return slicedIntervals
-}
-
-private fun List<Instruction>.toLines(): Sequence<Line> {
-    var pos = Pos(0, 0)
-    val lines = sequence {
-        forEach {
-            val newPos = pos + it
-            this.yield(Line(pos, newPos, it.direction))
-
-            pos = newPos
-        }
-    }
-    return lines
-}
-
-data class Line(
-    val start: Pos,
-    val end: Pos,
-    val direction: Direction
-) {
-    companion object {
-        fun parseToLines(input: List<String>): Sequence<Line> {
-            val instructions = input.map { Instruction.parseUsingPart1Rules(it) }
-
-            return instructions.toLines()
-        }
-    }
-
-    fun intersectsWith(y: Int): Boolean {
-        check((direction == Direction.U || direction == Direction.D)) { direction.toString() }
-
-        return y in (min(start.y, end.y)..max(start.y, end.y))
-    }
-}
-
-private fun MutableMap<Pos, Char>.digOutInterior() {
-    this.floodFill(Pos(minX() - 1, minY() - 1))
-
-    this.forEach { (pos, c) ->
-    }
-
-    (minY()..maxY()).forEach { y ->
-        (minX()..maxX()).forEach { x ->
-            val pos = Pos(x, y)
-            val c = this[pos]
-
-            if (c == null) {
-                this[pos] = '#'
-            } else if (c == 'x') {
-                this.remove(pos)
-            }
-        }
-    }
-}
-
-private fun MutableMap<Pos, Char>.floodFill(initialPos: Pos) {
-    val minX = minX()
-    val maxX = maxX()
-    val minY = minY()
-    val maxY = maxY()
-
-    val stack = Stack<Pos>()
-
-    stack.push(initialPos)
-
-    while (stack.isNotEmpty()) {
-        val pos = stack.pop()
-
-        val c = this[pos]
-        if (c == null) {
-
-            this[pos] = 'x'
-
-            listOf(
-                pos + Direction.U,
-                pos + Direction.D,
-                pos + Direction.L,
-                pos + Direction.R
-            ).filter {
-                it.x > minX - 3 &&
-                        it.x < maxX + 3 &&
-                        it.y > minY - 3 &&
-                        it.y < maxY + 3
-            }.forEach { stack.push(it) }
-        }
-    }
 }
 
 private fun MutableMap<Pos, Char>.asString(): String {
@@ -360,61 +189,6 @@ class Day18Test {
             .#....#
             .######
         """.trimIndent()
-    }
-
-    @Test
-    fun `can dig out the interior from test input`() {
-        val lagoon = parseLagoon(testInput)
-
-        lagoon.digOutInterior()
-
-        lagoon.asString() shouldBe
-                """
-                    #######
-                    #######
-                    #######
-                    ..#####
-                    ..#####
-                    #######
-                    #####..
-                    #######
-                    .######
-                    .######
-                """.trimIndent()
-    }
-
-    @Test
-    fun `can slice up intervals`() {
-        val unsliced = listOf(
-            0 to 1,
-            1 to 3,
-            3 to 10
-        )
-
-        val sliced = sliceThoseIntervals(unsliced)
-
-        sliced shouldBe listOf(
-            0 to 0,
-            1 to 1,
-            2 to 2,
-            3 to 3,
-            4 to 9,
-            10 to 10
-        )
-    }
-
-    @Test
-    fun `can dudify ranges`() {
-        val someLines = listOf(
-            Line(Pos(0, 0), Pos(0, 0), Direction.U),
-            Line(Pos(10, 0), Pos(10, 0), Direction.U),
-            Line(Pos(20, 0), Pos(20, 0), Direction.D),
-            Line(Pos(30, 0), Pos(30, 0), Direction.U),
-            Line(Pos(40, 0), Pos(40, 0), Direction.D)
-        )
-
-        horizontalRangeThingies(someLines) shouldBe listOf(0..20, 30..40)
-
     }
 }
 

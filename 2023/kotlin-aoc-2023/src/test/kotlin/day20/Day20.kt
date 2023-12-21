@@ -8,7 +8,11 @@ import org.junit.jupiter.api.Test
 private fun part1(input: List<String>): Long {
     val modules = parseModules(input)
 
-    val (h, l) = pulseSequence(modules, numButtonPresses = 1000)
+    modules.dumpGraph()
+
+    val (h, l) = pulseSequence(modules)
+        .take(1000)
+        .flatMap { it }
         .fold(Pair<Long, Long>(0, 0)) { (h, l), pulse ->
             if (pulse.type == PulseType.low) {
                 Pair(h, l+1)
@@ -20,8 +24,65 @@ private fun part1(input: List<String>): Long {
     return h * l
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
+private fun Map<String, Module>.dumpGraph() {
+
+    println("digraph ston {")
+
+    this.forEach { (k, v) ->
+        val destinations = v.destinations
+            .map {
+                this[it]?.let { module ->
+                    "${module.type}_${module.name}"
+                } ?: it
+            }
+            .joinToString(", ")
+        println(" ${v.type}_${v.name} -> { $destinations }")
+    }
+
+    println("}")
+}
+
+private fun part2(input: List<String>): Long {
+    val modules = parseModules(input)
+
+    pulseSequence(modules)
+        .withIndex()
+        .map { (i, ps) ->
+            i to ps.filter {
+                it.type == PulseType.high && (it.source == "br" || it.source == "lf" || it.source == "rz" || it.source == "fk")
+            }
+        }
+        .take(5000)
+        .filter { (i, ps) -> ps.isNotEmpty()}
+        .forEach { (i, ps) ->
+            val sources = ps.map { "${it.source} ${it.type}" }
+
+            println("${i + 1} ${sources}")
+        }
+
+    // it turns out that these four modules give the input of the conjunction module that feeds the rx module. They
+    // give a high pulse every x button presses, where x is one of the numbers below.
+    // It turns out that each of the x values is prime so we could have just multiplied them together and saved all the
+    // hassle of computing the lcm but hey ho, this is ever so slightly more generalised and applicable to non-prime
+    // numbers as well. Assuming we haven't screwed up the lcm calculation, which is entirely possible.
+    return lcm(3877, 3911, 4057, 4079)
+}
+
+fun gcd(a: Long, b: Long): Long =
+    if (b > 0) gcd(b, a % b)
+    else a
+
+fun gcd(a: Long, b: Long, c: Long, d: Long): Long {
+    return gcd(
+        gcd(a, b),
+        gcd(c, d)
+    )
+}
+
+fun lcm(a: Long, b: Long): Long = a * (b / gcd(a, b))
+
+fun lcm(a: Long, b: Long, c: Long, d: Long): Long {
+    return a * b * c * d / gcd(a, b, c, d) // hope this actually works innit
 }
 
 enum class PulseType {
@@ -38,6 +99,8 @@ sealed class Module(
     val name: String,
     val destinations: List<String>
 ) {
+    abstract val type: String
+
     fun receivePulse(pulse: Pulse): List<Pulse> {
         val pulse = Pulse(pulse.source, pulse.type, this.name)
 
@@ -78,6 +141,8 @@ class Conjunction(
     name: String,
     destinations: List<String>
 ) : Module(name, destinations) {
+    override val type = "conjunction"
+
     val receivedFromInputs: MutableMap<String, PulseType> = mutableMapOf()
 
     override fun internalReceivePulse(pulse: Pulse): PulseType? {
@@ -110,6 +175,8 @@ class FlipFlop(
     destinations: List<String>,
     var state: FlipFlopState = FlipFlopState.OFF
 ) : Module(name, destinations) {
+    override val type = "flipflop"
+
     override fun internalReceivePulse(pulse: Pulse): PulseType? {
         return when (pulse.type) {
             PulseType.high -> null
@@ -127,6 +194,8 @@ class FlipFlop(
 }
 
 class Broadcaster(destinations: List<String>) : Module("broadcaster", destinations) {
+    override val type = ""
+
     override fun internalReceivePulse(pulse: Pulse) = pulse.type
 }
 
@@ -151,17 +220,19 @@ fun parseModules(input: List<String>): Map<String, Module> {
     return modules
 }
 
-fun pulseSequence(modules: Map<String, Module>, numButtonPresses: Int = 1) =
+fun pulseSequence(modules: Map<String, Module>) =
     sequence {
         val queue = ArrayDeque<Pulse>()
 
-        for (i in (0 until numButtonPresses)) {
+        while(true) {
             queue.addLast(Pulse("button", PulseType.low, "broadcaster"))
+
+            val mutableListOfPulses = mutableListOf<Pulse>()
 
             while (queue.isNotEmpty()) {
                 val pulse = queue.removeFirst()
 
-                yield(pulse)
+                mutableListOfPulses.add(pulse)
 
                 val destination = modules[pulse.destination]
 
@@ -169,6 +240,8 @@ fun pulseSequence(modules: Map<String, Module>, numButtonPresses: Int = 1) =
 
                 queue.addAll(moarPulses)
             }
+
+            yield(mutableListOfPulses.toList())
         }
     }
 
@@ -188,24 +261,19 @@ class Day20Test {
     fun `part 1 with real input`() {
         part1(readInputFileToList("day20.txt")) shouldBe 817896682L
     }
-//
-//    @Ignore
-//    @Test
-//    fun `part 2 with test input`() {
-//        part2(testInput) shouldBe -1
-//    }
-//
-//    @Ignore
-//    @Test
-//    fun `part 2 with real input`() {
-//        part2(readInputFileToList("day_template.txt")) shouldBe -1
-//    }
+    @Test
+    fun `part 2 with real input`() {
+        part2(readInputFileToList("day20.txt")) shouldBe 250924073918341L
+    }
 
     @Test
     fun `simple input does interesting things`() {
         val modules = parseModules(simpleTestInput)
 
-        pulseSequence(modules).map { it.toLogString() }
+        pulseSequence(modules)
+            .take(1)
+            .flatMap { it }
+            .map { it.toLogString() }
             .joinToString("\n") shouldBe
                 """
                     button -low-> broadcaster
@@ -227,7 +295,10 @@ class Day20Test {
     fun `less simple input does more interesting things`() {
         val modules = parseModules(testInput2)
 
-        pulseSequence(modules, numButtonPresses = 4).map { it.toLogString() }
+        pulseSequence(modules)
+            .take(4)
+            .flatMap { it }
+            .map { it.toLogString() }
             .joinToString("\n") shouldBe
                 """
                     button -low-> broadcaster

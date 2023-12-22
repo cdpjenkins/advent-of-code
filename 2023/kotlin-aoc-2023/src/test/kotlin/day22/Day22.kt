@@ -16,12 +16,45 @@ private fun part1(input: List<String>) =
         .count { !it }
 
 private fun part2(input: List<String>): Int {
-    val supportMatrix = input.parseToBricks()
-        .fall()
-        .supportMatrix()
+    val fallenBricks = input.parseToBricks().fall()
+    val supportMatrix = fallenBricks.supportMatrix()
 
-    return 123
+    val mutableFallenBricks = fallenBricks.toMutableList()
+
+    val results = mutableMapOf<Int, Int>()
+    while (mutableFallenBricks.isNotEmpty()) {
+        val thisBrick = mutableFallenBricks.removeLast()
+
+        val bricksThatAreSolelySupportedBy =
+            supportMatrix.bricksThatAreSolelySupportedBy(thisBrick.index, mutableSetOf(thisBrick.index)) - thisBrick.index
+
+        results[thisBrick.index] = bricksThatAreSolelySupportedBy.size
+    }
+
+    return results.values.sum()
 }
+
+fun Array<BooleanArray>.bricksThatDirectlySupport(id: Int): Set<Int> =
+    (0..<size).filter { this[id][it] }.toSet()
+
+fun Array<BooleanArray>.bricksThatAreSolelySupportedBy(id: Int, supportSet: MutableSet<Int>): MutableSet<Int> {
+    val directlyAbove = bricksThatAreDirectlySupportedBy(id, this)
+
+    val notSupportedByAnythingElse = directlyAbove.filter {
+        this.bricksThatDirectlySupport(it)
+            .all { supporter -> supporter in supportSet }
+    }
+
+    supportSet += notSupportedByAnythingElse
+
+    directlyAbove.filter { it in supportSet }
+        .forEach { this.bricksThatAreSolelySupportedBy(it, supportSet) }
+
+    return supportSet
+}
+
+fun bricksThatAreDirectlySupportedBy(id: Int, supportMatrix: Array<BooleanArray>): Set<Int> =
+    (0..<supportMatrix.size).filter { supportMatrix[it][id] }.toSet()
 
 private fun Array<BooleanArray>.toIsSoleSupportArray(): BooleanArray {
     val isSoleSupport = BooleanArray(size)
@@ -44,11 +77,9 @@ private fun List<Brick>.supportMatrix(): Array<BooleanArray> {
     while (reversedBricks.isNotEmpty()) {
         val thisBrick = reversedBricks.removeLast()
 
-        val bricksWeMightBeSupporting = reversedBricks
+        val bricksWeSupport = reversedBricks.filter { thisBrick.supports(it) }
 
-        val bricksWeActuallySupport = bricksWeMightBeSupporting.filter { thisBrick.supports(it) }
-
-        bricksWeActuallySupport.forEach {
+        bricksWeSupport.forEach {
             supportMatrix[it.index][thisBrick.index] = true
         }
     }
@@ -105,6 +136,7 @@ data class Brick(
         return Brick(this.index, this.x1, this.y1, ourNewZThang, this.x2, this.y2, this.z2 - amountFallen)
     }
 
+
     companion object {
         val regex = "^(\\d+),(\\d+),(\\d+)~(\\d+),(\\d+),(\\d+)$".toRegex()
 
@@ -135,16 +167,17 @@ class Day22Test {
         part1(readInputFileToList("day22.txt")) shouldBe 501
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInput) shouldBe 7
     }
 
-    @Ignore
+    @Ignore // this is much too inefficient to run every time
+    // I feel really bad for brute-forcing this. But not quite bad enough to go away and study graph algorithms and
+    // find a way to implement it more efficiently.
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+        part2(readInputFileToList("day22.txt")) shouldBe 80948
     }
 
     @Test

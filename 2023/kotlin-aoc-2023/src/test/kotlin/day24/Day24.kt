@@ -2,7 +2,9 @@ package day24
 
 import FileUtil.readInputFileToList
 import RegexUtils.parseUsingRegex
+import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -20,8 +22,6 @@ private fun part1(input: List<String>, testArea: ClosedFloatingPointRange<Double
                 h1.findIntersection(h2)?.let {
                     if (it.x in testArea && it.y in testArea) {
 
-                        println("intersection point $it")
-
                         val d1 = it - h1.position.projectXY()
                         val dotProject = d1.normalise() dotProduct h1.velocity.projectXY().normalise()
                         println("dot prod 1: $dotProject")
@@ -31,10 +31,6 @@ private fun part1(input: List<String>, testArea: ClosedFloatingPointRange<Double
                         println("dot prod 2 $dotProduct2")
                         if (dotProject > 0.99 && dotProject < 1.02
                             && dotProduct2 > 0.98 && dotProduct2 < 1.02) {
-
-                            println("crossed: ${i1} ${i2} $it")
-
-
                             1
                         } else {
                             0
@@ -49,36 +45,79 @@ private fun part1(input: List<String>, testArea: ClosedFloatingPointRange<Double
         }
     }
 
-
     return stonstour.sum()
 }
 
 data class Hailstone(val position: Vector3D, val velocity: Vector3D) {
+
+    fun toLine(): Line {
+        val a = velocity.y
+        val b = -velocity.x
+        val c = velocity.y * position.x - velocity.x * position.y
+
+        return Line(a, b, c)
+    }
+
     fun findIntersection(that: Hailstone): Vector2D? {
 
         val thisVelocity2D = this.velocity.projectXY()
         val thatVelocity2D = that.velocity.projectXY()
 
-        if (abs(1.0 - (thisVelocity2D.normalise() dotProduct thatVelocity2D.normalise())) < 0.001) {
+        val (a1, b1, c1) = this.toLine()
+        val (a2, b2, c2) = that.toLine()
+
+        val denom = a1 * b2 - a2 * b1
+        if (denom == 0.0) return null
+
+        val x = -(b1 * c2 - b2 * c1) / denom
+        val y = -(c1 * a2 - c2 * a1) / denom
+
+        val intersectionpoint = Vector2D(x, y)
+
+        val fuck = (intersectionpoint - this.position.projectXY()) dotProduct thisVelocity2D
+        if (fuck < 0.0) {
             return null
         }
 
-        val thisPosition2D = this.position.projectXY()
+        val you = (intersectionpoint - that.position.projectXY()) dotProduct thatVelocity2D
+        if (you < 0.0) {
+            return null
+        }
 
-        val displacement2D = that.position.projectXY() - this.position.projectXY()
+        return intersectionpoint
 
-        val normal = thatVelocity2D.rotate90Degrees().normalise()
+//        val thisVelocity2D = this.velocity.projectXY()
+//        val thatVelocity2D = that.velocity.projectXY()
+//
+//        if (abs(1.0 - (thisVelocity2D.normalise() dotProduct thatVelocity2D.normalise())) < 0.001) {
+//            return null
+//        }
+//
+//        val thisPosition2D = this.position.projectXY()
+//
+//        val displacement2D = that.position.projectXY() - this.position.projectXY()
+//
+//        val normal = thatVelocity2D.rotate90Degrees().normalise()
+//
+//        val normalisedDisplacement = displacement2D dotProduct normal
+//
+//        val vClosingTheGap = thisVelocity2D dotProduct normal
+//
+//        val t = normalisedDisplacement / vClosingTheGap
+//
+//
+//        val intersectionPoint = thisPosition2D + thisVelocity2D * abs(t)
+//
+//        return intersectionPoint
+    }
 
-        val normalisedDisplacement = displacement2D dotProduct normal
+    private fun determinant(ac: Vector2D, bd: Vector2D): Double {
+        val a = ac.x
+        val b = bd.x
+        val c = ac.y
+        val d = bd.y
 
-        val vClosingTheGap = thisVelocity2D dotProduct normal
-
-        val t = normalisedDisplacement / vClosingTheGap
-
-
-        val intersectionPoint = thisPosition2D + thisVelocity2D * abs(t)
-
-        return intersectionPoint
+        return a * d - b * c
     }
 
     companion object {
@@ -93,6 +132,10 @@ data class Hailstone(val position: Vector3D, val velocity: Vector3D) {
             )
         }
     }
+}
+
+data class Line(val a: Double, val b: Double, val c: Double) {
+
 }
 
 data class Vector3D(val x: Double, val y: Double, val z: Double) {
@@ -169,6 +212,56 @@ class Day24Test {
 
         a.findIntersection(b) shouldBe null
     }
+
+    @Test
+    fun ston() {
+        Hailstone.of("19, 13, 30 @ -2, 1, -2").findIntersection(
+            Hailstone.of("18, 19, 22 @ -1, -1, -2")
+        ) shouldBeAbout Vector2D(x=14.333, y=15.333)
+
+        Hailstone.of("19, 13, 30 @ -2, 1, -2").findIntersection(
+            Hailstone.of("20, 25, 34 @ -2, -2, -4")
+        ) shouldBeAbout Vector2D(x=11.667, y=16.667)
+
+        Hailstone.of("19, 13, 30 @ -2, 1, -2").findIntersection(
+            Hailstone.of("12, 31, 28 @ -1, -2, -1")
+        ) shouldBeAbout Vector2D(x=6.2, y=19.4)
+
+        Hailstone.of("19, 13, 30 @ -2, 1, -2").findIntersection(
+            Hailstone.of("20, 19, 15 @ 1, -5, -3")
+        ) shouldBe null
+
+        Hailstone.of("18, 19, 22 @ -1, -1, -2").findIntersection(
+            Hailstone.of("20, 25, 34 @ -2, -2, -4")
+        ) shouldBe null
+
+        Hailstone.of("18, 19, 22 @ -1, -1, -2").findIntersection(
+            Hailstone.of("12, 31, 28 @ -1, -2, -1")
+        ) shouldBeAbout Vector2D(x=-6.0, y=-5.0)
+
+        Hailstone.of("18, 19, 22 @ -1, -1, -2").findIntersection(
+            Hailstone.of("20, 19, 15 @ 1, -5, -3")
+        ) shouldBe null
+
+        Hailstone.of("20, 25, 34 @ -2, -2, -4").findIntersection(
+            Hailstone.of("12, 31, 28 @ -1, -2, -1")
+        ) shouldBeAbout Vector2D(x=-2.0, y=3.0)
+
+        Hailstone.of("18, 19, 22 @ -1, -1, -2").findIntersection(
+            Hailstone.of("20, 19, 15 @ 1, -5, -3")
+        ) shouldBe null
+
+        Hailstone.of("20, 25, 34 @ -2, -2, -1").findIntersection(
+            Hailstone.of("20, 19, 15 @ 1, -5, -3")
+        ) shouldBe null
+    }
+}
+
+private infix fun Vector2D?.shouldBeAbout(that: Vector2D) {
+    this shouldNotBe null
+    this!!
+    this.x shouldBe (that.x plusOrMinus 0.001)
+    this.y shouldBe (that.y plusOrMinus 0.001)
 }
 
 val testInput =

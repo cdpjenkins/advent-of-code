@@ -21,20 +21,7 @@ private fun part1(input: List<String>, testArea: ClosedFloatingPointRange<Double
 
                 h1.findIntersection(h2)?.let {
                     if (it.x in testArea && it.y in testArea) {
-
-                        val d1 = it - h1.position.projectXY()
-                        val dotProject = d1.normalise() dotProduct h1.velocity.projectXY().normalise()
-                        println("dot prod 1: $dotProject")
-                        val d2 = it - h2.position.projectXY()
-                        val v2 = h2.velocity.projectXY()
-                        val dotProduct2 = d2.normalise() dotProduct v2.normalise()
-                        println("dot prod 2 $dotProduct2")
-                        if (dotProject > 0.99 && dotProject < 1.02
-                            && dotProduct2 > 0.98 && dotProduct2 < 1.02) {
-                            1
-                        } else {
-                            0
-                        }
+                        1
                     } else {
                         0
                     }
@@ -182,7 +169,7 @@ class Day24Test {
         // 32797 too high
         // 32690 too high
 
-        part1(readInputFileToList("day24.txt"), (200000000000000.0..400000000000000.0)) shouldBe -1
+        part1(readInputFileToList("day24.txt"), (200000000000000.0..400000000000000.0)) shouldBe 31208
     }
 
     @Ignore

@@ -24,7 +24,6 @@ private fun part1(input: List<String>, testArea: ClosedFloatingPointRange<Double
 }
 
 data class Hailstone(val position: Vector3D, val velocity: Vector3D) {
-
     fun toLine(): Line {
         val a = velocity.y
         val b = -velocity.x
@@ -34,7 +33,6 @@ data class Hailstone(val position: Vector3D, val velocity: Vector3D) {
     }
 
     fun findIntersection(that: Hailstone): Vector2D? {
-
         val thisVelocity2D = this.velocity.projectXY()
         val thatVelocity2D = that.velocity.projectXY()
 
@@ -44,55 +42,16 @@ data class Hailstone(val position: Vector3D, val velocity: Vector3D) {
         val denom = a1 * b2 - a2 * b1
         if (denom == 0.0) return null
 
-        val x = -(b1 * c2 - b2 * c1) / denom
-        val y = -(c1 * a2 - c2 * a1) / denom
+        val intersectionPoint = Vector2D(
+            -(b1 * c2 - b2 * c1) / denom,
+            -(c1 * a2 - c2 * a1) / denom
+        )
 
-        val intersectionpoint = Vector2D(x, y)
-
-        val fuck = (intersectionpoint - this.position.projectXY()) dotProduct thisVelocity2D
-        if (fuck < 0.0) {
-            return null
+        return when {
+            (intersectionPoint - position.projectXY()) dotProduct thisVelocity2D < 0.0 -> null
+            (intersectionPoint - that.position.projectXY()) dotProduct thatVelocity2D < 0.0 -> null
+            else -> intersectionPoint
         }
-
-        val you = (intersectionpoint - that.position.projectXY()) dotProduct thatVelocity2D
-        if (you < 0.0) {
-            return null
-        }
-
-        return intersectionpoint
-
-//        val thisVelocity2D = this.velocity.projectXY()
-//        val thatVelocity2D = that.velocity.projectXY()
-//
-//        if (abs(1.0 - (thisVelocity2D.normalise() dotProduct thatVelocity2D.normalise())) < 0.001) {
-//            return null
-//        }
-//
-//        val thisPosition2D = this.position.projectXY()
-//
-//        val displacement2D = that.position.projectXY() - this.position.projectXY()
-//
-//        val normal = thatVelocity2D.rotate90Degrees().normalise()
-//
-//        val normalisedDisplacement = displacement2D dotProduct normal
-//
-//        val vClosingTheGap = thisVelocity2D dotProduct normal
-//
-//        val t = normalisedDisplacement / vClosingTheGap
-//
-//
-//        val intersectionPoint = thisPosition2D + thisVelocity2D * abs(t)
-//
-//        return intersectionPoint
-    }
-
-    private fun determinant(ac: Vector2D, bd: Vector2D): Double {
-        val a = ac.x
-        val b = bd.x
-        val c = ac.y
-        val d = bd.y
-
-        return a * d - b * c
     }
 
     companion object {
@@ -109,37 +68,22 @@ data class Hailstone(val position: Vector3D, val velocity: Vector3D) {
     }
 }
 
-data class Line(val a: Double, val b: Double, val c: Double) {
-
-}
+data class Line(val a: Double, val b: Double, val c: Double)
 
 data class Vector3D(val x: Double, val y: Double, val z: Double) {
-    fun projectXY(): Vector2D {
-        return Vector2D(x, y)
-    }
+    fun projectXY() = Vector2D(x, y)
 }
 
 data class Vector2D(
     val x: Double,
     val y: Double
 ) {
-    operator fun minus(that: Vector2D): Vector2D {
-        return Vector2D(this.x - that.x, this.y - that.y)
-    }
+    operator fun minus(that: Vector2D) = Vector2D(this.x - that.x, this.y - that.y)
 
-    infix fun dotProduct(that: Vector2D): Double {
-        return this.x * that.x + this.y * that.y
-    }
+    infix fun dotProduct(that: Vector2D) = this.x * that.x + this.y * that.y
 
-    fun normalise(): Vector2D {
-        val m = magnitude()
-        return Vector2D(x / m, y / m)
-    }
-
-    fun magnitude(): Double = sqrt(x*x + y*y)
     operator fun plus(that: Vector2D): Vector2D = Vector2D(this.x + that.x, this.y + that.y)
     operator fun times(c: Double): Vector2D = Vector2D(c * x, c * y)
-    fun rotate90Degrees() = Vector2D(-y, x)
 }
 
 private fun part2(input: List<String>): Int {
@@ -154,9 +98,6 @@ class Day24Test {
 
     @Test
     fun `part 1 with real input`() {
-        // 32797 too high
-        // 32690 too high
-
         part1(readInputFileToList("day24.txt"), (200000000000000.0..400000000000000.0)) shouldBe 31208
     }
 

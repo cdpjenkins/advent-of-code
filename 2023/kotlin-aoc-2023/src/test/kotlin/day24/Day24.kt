@@ -6,7 +6,6 @@ import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.Test
-import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.test.Ignore
 
@@ -15,24 +14,13 @@ private fun part1(input: List<String>, testArea: ClosedFloatingPointRange<Double
 
     val indexedHailstones = hailstones.withIndex()
 
-    val stonstour = indexedHailstones.flatMap { (i1, h1) ->
-        indexedHailstones.map { (i2, h2) ->
-            if (i1 < i2) {
-
-                h1.findIntersection(h2)?.let {
-                    if (it.x in testArea && it.y in testArea) {
-                        1
-                    } else {
-                        0
-                    }
-                } ?: 0
-            } else {
-                0
-            }
-        }
+    return indexedHailstones.flatMap { (i1, h1) ->
+        indexedHailstones
+            .filter { (i2, h2) -> i1 < i2 }
+            .map { (i2, h2) -> h1.findIntersection(h2) }
     }
-
-    return stonstour.sum()
+        .filterNotNull()
+        .filter { it.x in testArea && it.y in testArea }.count()
 }
 
 data class Hailstone(val position: Vector3D, val velocity: Vector3D) {

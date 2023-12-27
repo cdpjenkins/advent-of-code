@@ -10,37 +10,17 @@ import kotlin.test.Ignore
 private fun part1(input: List<String>) =
     Graph
         .of(input)
-        .findAllThePaths()
+        .findLongestPath()
 
 private fun part2(input: List<String>): Int {
-    val tharGraph = Graph
-        .of(
-            input.map { it.replace("v", ".") }
-                .map { it.replace(">", ".") }
-        )
+    val inputWithoutTheSlopes =
+        input.map { it.replace("v", ".") }
+            .map { it.replace(">", ".") }
+    val contractedGraph =
+        Graph.of(inputWithoutTheSlopes)
+            .contractThyself()
 
-//    println(tharGraph.graph.count { it.size == 1 })
-//    println(tharGraph.graph.count { it.size == 2 })
-//    println(tharGraph.graph.count { it.size > 2 })
-
-    val contractedGraph = tharGraph.contractThyself()
-
-    contractedGraph.graph.withIndex().forEach { (i, e) ->
-        if (e.isNotEmpty()) println("${i} -> ${e}")
-    }
-
-//    return -123
-
-    // this is going to result in an enormous combinatorial explosion for part 2
-    // Plan is to contract the graph such that the graph is weighted and only branching nodes are actually nodes
-    // in the graph.
-    // but...
-    // I don't see how that is going to make this horrific brute-force search much more efficient. The graph isn't
-    // going to branch any less than before. It's just going to have fewer pointless intermediate nodes...
-    return contractedGraph
-        .findAllThePaths()
-
-    return 123
+    return contractedGraph.findLongestPath()
 }
 
 private fun neighoursOf(
@@ -64,13 +44,13 @@ private fun neighoursOf(
 }
 
 data class Path(
-    val currentNode: Int,
-    val previousNodes: BitSet,
+    val currentVertex: Int,
+    val previousBVertices: BitSet,
     val length: Int
 ) {
-    fun isComplete(endNode: Int) = currentNode == endNode
+    fun isComplete(endNode: Int) = currentVertex == endNode
     fun andThen(newEdge: Edge): Path {
-        val newPreviousNodes = previousNodes.clone() as BitSet
+        val newPreviousNodes = previousBVertices.clone() as BitSet
         newPreviousNodes.set(newEdge.targetVertex)
 
         return Path(newEdge.targetVertex, newPreviousNodes, length + newEdge.weight)
@@ -81,8 +61,8 @@ data class Path(
             val nodes = BitSet(numNodes)
             nodes.set(startNode)
             return Path(
-                currentNode = startNode,
-                previousNodes = nodes,
+                currentVertex = startNode,
+                previousBVertices = nodes,
                 length = 0
             )
         }
@@ -98,37 +78,29 @@ data class Graph(
     val width: Int,
     val height: Int,
     val graph: List<List<Edge>>,
-    val startNode: Int,
-    val endNode: Int
+    val startVertex: Int,
+    val endVertex: Int
 ) {
 
     fun contractThyself(): Graph {
-        val nodesToKeep =
+        val VerticesToKeep =
             graph.withIndex()
-                .filter { (n, neighbours) ->
-                    neighbours.size >= 3 || n == startNode || n == endNode
-                }
-                .map {(i, neighbours) -> i to neighbours }
+                .filter { (n, neighbours) -> neighbours.size >= 3 || n == startVertex || n == endVertex }
+                .map { (i, neighbours) -> i to neighbours }
                 .toMap()
 
         val mutableGraph = graph.toMutableList()
-        nodesToKeep.forEach { (i, neighbours) ->
-            println("${i} ${neighbours}")
-
+        VerticesToKeep.forEach { (i, neighbours) ->
             val newNeighbours = neighbours.map { neighbour ->
                 // terrible naming!
-                val contractionTarget: Edge = findContractionTarget(from = i, neighbour = neighbour.targetVertex)
-
-//                println("contraction target: ${contractionTarget}")
-
-                contractionTarget
+                findContractionTarget(from = i, neighbour = neighbour.targetVertex)
             }
 
             mutableGraph[i] = newNeighbours
         }
 
         mutableGraph.indices.forEach {
-            if (it !in nodesToKeep.keys) {
+            if (it !in VerticesToKeep.keys) {
                 mutableGraph[it] = emptyList()
             }
         }
@@ -136,36 +108,39 @@ data class Graph(
         return this.copy(graph = mutableGraph.toList())
     }
 
+    /** Basically we're going to perform edge contraction by removing any vertex that are not branching points... if
+     * I'm at zertex A and going to vertex B means that the only place I can go next is to vertex C and then to vertex
+     * D then I just remove the intermediate vertices and edges and just add an edge from vertex A directly to vertex D
+     * (with weight equal to the sum of the weights of the edges that I just eliminated).
+     */
     private fun findContractionTarget(from: Int, neighbour: Int, weight: Int = 1): Edge {
         val nextNeighbours =
             graph[neighbour]
                 .filter { it.targetVertex != from }
 
         return if (nextNeighbours.size == 1) {
+            // ha in the general case, the new weight should be weight + the weight of the edge that we just eliminated
+            // but we forgot to make that information available to this function :-)
             findContractionTarget(neighbour, nextNeighbours.first().targetVertex, weight + 1)
         } else {
             Edge(neighbour, weight)
         }
     }
 
-    fun findAllThePaths(): Int {
-        val activePaths = mutableListOf(Path.startingAt(startNode, width * height))
+    fun findLongestPath(): Int {
+        val activePaths = mutableListOf(Path.startingAt(startVertex, width * height))
         var maxPathLength = 0
 
         while (activePaths.isNotEmpty()) {
-
-//            println("number of paths: ${activePaths.size}")
-//            println("max len:         ${maxPathLength}")
-
             val thisPath = activePaths.removeLast()
 
-            if (thisPath.isComplete(endNode)) {
+            if (thisPath.isComplete(endVertex)) {
                 maxPathLength = max(maxPathLength, thisPath.length)
             } else {
-                val nextNodes = graph[thisPath.currentNode]
-                    .filter { !thisPath.previousNodes[it.targetVertex] }
+                val nextVertices = graph[thisPath.currentVertex]
+                    .filter { !thisPath.previousBVertices[it.targetVertex] }
 
-                val nextPaths = nextNodes.map { thisPath.andThen(it) }
+                val nextPaths = nextVertices.map { thisPath.andThen(it) }
 
                 activePaths.addAll(nextPaths)
             }
@@ -278,8 +253,3 @@ val testInput =
         #####################.#
     """.trimIndent().lines()
 
-fun main() {
-    val input = readInputFileToList("day23.txt")
-    val tharResult = part2(input)
-    println(tharResult)
-}

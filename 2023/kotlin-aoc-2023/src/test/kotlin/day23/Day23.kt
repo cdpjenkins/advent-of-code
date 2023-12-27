@@ -89,10 +89,12 @@ data class Path(
     }
 }
 
+data class Edge(val targetVertex: Int)
+
 data class Graph(
     val width: Int,
     val height: Int,
-    val graph: List<List<Int>>,
+    val graph: List<List<Edge>>,
     val startNode: Int,
     val endNode: Int
 ) {
@@ -112,11 +114,11 @@ data class Graph(
 
             val newNeighbours = neighbours.map { neighbour ->
                 // terrible naming!
-                val contractionTarget = findContractionTarget(from = i, neighbour = neighbour)
+                val contractionTarget = findContractionTarget(from = i, neighbour = neighbour.targetVertex)
 
 //                println("contraction target: ${contractionTarget}")
 
-                contractionTarget
+                Edge(contractionTarget)
             }
 
             mutableGraph[i] = newNeighbours
@@ -134,10 +136,10 @@ data class Graph(
     private fun findContractionTarget(from: Int, neighbour: Int): Int {
         val nextNeighbours =
             graph[neighbour]
-                .filter { it != from }
+                .filter { it.targetVertex != from }
 
         return if (nextNeighbours.size == 1) {
-            findContractionTarget(neighbour, nextNeighbours.first())
+            findContractionTarget(neighbour, nextNeighbours.first().targetVertex)
         } else {
             neighbour
         }
@@ -157,10 +159,10 @@ data class Graph(
             if (thisPath.isComplete(endNode)) {
                 maxPathLength = max(maxPathLength, thisPath.length)
             } else {
-                val nextNodes = graph[thisPath.currentNode]!!
-                    .filter { !thisPath.previousNodes[it] }
+                val nextNodes = graph[thisPath.currentNode]
+                    .filter { !thisPath.previousNodes[it.targetVertex] }
 
-                val nextPaths = nextNodes.map { thisPath.andThen(it) }
+                val nextPaths = nextNodes.map { thisPath.andThen(it.targetVertex) }
 
                 activePaths.addAll(nextPaths)
             }
@@ -192,14 +194,14 @@ data class Graph(
                 p to neighbours
             }.toMap()
 
-            val graphMutable = MutableList<List<Int>>(width * height) { listOf() }
+            val graphMutable = MutableList<List<Edge>>(width * height) { listOf() }
             (0..<height).forEach { y ->
                 (0..<width).forEach { x ->
                     val i = y * width + x
                     val p = Point(x, y)
 
                     graphMutable[i] = neighboursMap[p]!!.map { (nx, ny) ->
-                        ny * width + nx
+                        Edge(ny * width + nx)
                     }
                 }
             }

@@ -65,16 +65,15 @@ private fun neighoursOf(
 
 data class Path(
     val currentNode: Int,
-    val previousNodes: BitSet
+    val previousNodes: BitSet,
+    val length: Int
 ) {
-    val length: Int = previousNodes.cardinality() - 1 // don't count the start node innut
-
     fun isComplete(endNode: Int) = currentNode == endNode
-    fun andThen(newNode: Int): Path {
+    fun andThen(newEdge: Edge): Path {
         val newPreviousNodes = previousNodes.clone() as BitSet
-        newPreviousNodes.set(newNode)
+        newPreviousNodes.set(newEdge.targetVertex)
 
-        return Path(newNode, newPreviousNodes)
+        return Path(newEdge.targetVertex, newPreviousNodes, length + newEdge.weight)
     }
 
     companion object {
@@ -83,13 +82,17 @@ data class Path(
             nodes.set(startNode)
             return Path(
                 currentNode = startNode,
-                previousNodes = nodes
+                previousNodes = nodes,
+                length = 0
             )
         }
     }
 }
 
-data class Edge(val targetVertex: Int)
+data class Edge(
+    val targetVertex: Int,
+    val weight: Int = 1
+)
 
 data class Graph(
     val width: Int,
@@ -114,11 +117,11 @@ data class Graph(
 
             val newNeighbours = neighbours.map { neighbour ->
                 // terrible naming!
-                val contractionTarget = findContractionTarget(from = i, neighbour = neighbour.targetVertex)
+                val contractionTarget: Edge = findContractionTarget(from = i, neighbour = neighbour.targetVertex)
 
 //                println("contraction target: ${contractionTarget}")
 
-                Edge(contractionTarget)
+                contractionTarget
             }
 
             mutableGraph[i] = newNeighbours
@@ -133,15 +136,15 @@ data class Graph(
         return this.copy(graph = mutableGraph.toList())
     }
 
-    private fun findContractionTarget(from: Int, neighbour: Int): Int {
+    private fun findContractionTarget(from: Int, neighbour: Int, weight: Int = 1): Edge {
         val nextNeighbours =
             graph[neighbour]
                 .filter { it.targetVertex != from }
 
         return if (nextNeighbours.size == 1) {
-            findContractionTarget(neighbour, nextNeighbours.first().targetVertex)
+            findContractionTarget(neighbour, nextNeighbours.first().targetVertex, weight + 1)
         } else {
-            neighbour
+            Edge(neighbour, weight)
         }
     }
 
@@ -162,7 +165,7 @@ data class Graph(
                 val nextNodes = graph[thisPath.currentNode]
                     .filter { !thisPath.previousNodes[it.targetVertex] }
 
-                val nextPaths = nextNodes.map { thisPath.andThen(it.targetVertex) }
+                val nextPaths = nextNodes.map { thisPath.andThen(it) }
 
                 activePaths.addAll(nextPaths)
             }
@@ -236,16 +239,15 @@ class Day23Test {
         part1(readInputFileToList("day23.txt")) shouldBe 2018
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
         part2(testInput) shouldBe 154
     }
 
-    @Ignore
+    @Ignore  // far too inefficient to run every time
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day23.txt")) shouldBe -1
+        part2(readInputFileToList("day23.txt")) shouldBe 6406
     }
 }
 

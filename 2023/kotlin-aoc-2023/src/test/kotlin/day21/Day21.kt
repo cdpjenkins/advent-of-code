@@ -14,12 +14,11 @@ private fun part1(input: List<String>, numSteps: Int = 6): Int {
         .size
 }
 
-fun startSet(graph: Map<Point, Char>): Set<Point> =
+fun startSet(graph: Map<Point, Char>): Map<Point, Int> =
     graph
         .entries
-        .filter { (_, c) -> c == 'S' }
-        .map { it.key }
-        .toSet()
+        .first { (_, c) -> c == 'S' }
+        .let { (p, _) -> mapOf(p to 0) }
 
 private fun List<String>.parseGraph() =
     this.withIndex().flatMap { (y, line) ->
@@ -28,10 +27,11 @@ private fun List<String>.parseGraph() =
         }
     }.toMap()
 
-fun step(points: Set<Point>, graph: Map<Point, Char>): Set<Point> =
+fun step(points: Map<Point, Int>, graph: Map<Point, Char>): Map<Point, Int> =
     points
-        .flatMap { it.neighbours() }
-        .filter { it in graph.keys && graph[it] != '#' }.toSet()
+        .flatMap { (p, n) -> p.neighboursTo(n + 1) }
+        .filter { (it, _) -> it in graph.keys && graph[it] != '#' }
+        .toMap()
 
 data class Point(val x: Int, val y: Int) {
     fun neighbours(): Set<Point> {
@@ -41,6 +41,12 @@ data class Point(val x: Int, val y: Int) {
             Point(this.x - 1, this.y),
             Point(this.x + 1, this.y)
         )
+    }
+
+    fun neighboursTo(nPlusOne: Int): List<Pair<Point, Int>> {
+        return neighbours().map {
+            it to nPlusOne
+        }
     }
 }
 
@@ -159,6 +165,22 @@ class Day21Test {
                     .##O.##.##.
                     ...........
                 """.trimIndent()
+
+        graph.asStringWithDistances(stepList[6]) shouldBe
+                """
+                    ...........
+                    .....###.#.
+                    .###.##.6#.
+                    .6#6#6.6#..
+                    6.6.#.#.6..
+                    .##6.6####.
+                    .##.6#6..#.
+                    .6.6.6.##..
+                    .##.#.####.
+                    .##6.##.##.
+                    ...........
+                """.trimIndent()
+
     }
 }
 
@@ -175,7 +197,7 @@ private fun Map<Point, Char>.asString(): String {
     return str
 }
 
-private fun  Map<Point, Char>.asString(points: Set<Point>): String {
+private fun  Map<Point, Char>.asString(points: Map<Point, Int>): String {
     val width = this.maxOf { (p, _) -> p.x } + 1
     val height = this.maxOf { (p, _) -> p.y } + 1
 
@@ -184,6 +206,24 @@ private fun  Map<Point, Char>.asString(points: Set<Point>): String {
             val p = Point(x, y)
             if (p in points) {
                 'O'
+            } else {
+                this[p]
+            }
+        }.joinToString("")
+    }.joinToString("\n")
+
+    return str
+}
+
+private fun  Map<Point, Char>.asStringWithDistances(points: Map<Point, Int>): String {
+    val width = this.maxOf { (p, _) -> p.x } + 1
+    val height = this.maxOf { (p, _) -> p.y } + 1
+
+    val str = (0..<height).map { y ->
+        (0..<width).map { x ->
+            val p = Point(x, y)
+            if (p in points) {
+                points[p]
             } else {
                 this[p]
             }

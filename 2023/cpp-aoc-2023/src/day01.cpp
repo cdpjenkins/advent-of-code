@@ -3,6 +3,7 @@
 #include <ranges>
 #include <cstdint>
 #include <iostream>
+#include <numeric>
 
 #include "day01.hpp"
 
@@ -15,13 +16,9 @@ constexpr auto sum_of_first_and_last_digits = [](std::string line) {
             as_decimal( line | std::views::reverse | find_first_digit);                        ;
 };
 
-int day01_part1(const std::vector<std::string> &input) {
-    int total = 0;
-    for (auto thang : input | std::views::transform(sum_of_first_and_last_digits)) {
-        total += thang;
-    }
-
-    return total;
+int64_t day01_part1(const std::vector<std::string>&input) {
+    auto values = input | std::views::transform(sum_of_first_and_last_digits);
+    return std::accumulate(values.begin(), values.end(), 0L);
 }
 
 int day01_part2(const std::vector<std::string> &input) {

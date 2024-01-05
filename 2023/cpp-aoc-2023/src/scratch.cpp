@@ -5,6 +5,7 @@
 #include <numeric>
 #include <cstdint>
 #include <iostream>
+#include <regex>
 
 int main() {
     using namespace std::string_literals;
@@ -26,14 +27,25 @@ int main() {
             "10000"
     };
 
+    std::regex regex(R"(^(\d+)$)");
+
     // Split the string using std::views::split
     auto elves = input
             | std::views::lazy_split(""s)
-            | std::views::transform([](const auto& elf) -> uint64_t { // sum up the calories for each elf: range{uint64_t}
-                  auto to_unsigned = [](const auto& in) { return std::stoull(in); };
-                  auto rng = elf | std::views::transform(to_unsigned) | std::views::common; // range{string} -> range{uint64_t}
-                  return std::reduce(rng.begin(), rng.end()); // range{uint64_t} -> uint64_t
-              });
+            | std::views::transform([&regex](const auto& elf) -> uint64_t {
+                int cnt = 0;
+                std::smatch match;
+                for (auto& line : elf) {
+                    if (std::regex_match(line, match, regex)) {
+                        std::cout << "thar thang is " << match[1] << std::endl;
+
+                        auto& [_, ston, stour, poo, wee, foo] = match;
+
+                        cnt += std::stoi(match[1]);
+                    }
+                }
+                return cnt;
+            });
 
     std::vector<int> ston{elves.begin(), elves.end()};
 
@@ -41,9 +53,9 @@ int main() {
         std::cout << item << std::endl;
     }
 
-    std::cout << std::endl << std::endl;
+    // std::cout << std::endl << std::endl;
 
-    std::cout << std::ranges::max(elves);
+    // std::cout << std::ranges::max(elves);
 
     return 0;
 }

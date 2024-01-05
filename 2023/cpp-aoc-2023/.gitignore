@@ -1,6 +1,6 @@
 .vscode/
 .idea
-cmake-build-*/
+cmake-build*/
 build/
 /atari-build/cpp-sudoku
 /atari-build/*.o

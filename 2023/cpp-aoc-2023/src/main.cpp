@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include "util.hpp"
 #include "day01.hpp"
 

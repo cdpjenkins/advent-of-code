@@ -1,6 +1,7 @@
 #ifndef CPP_AOC_2022_DAY01_HPP
 #define CPP_AOC_2022_DAY01_HPP
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

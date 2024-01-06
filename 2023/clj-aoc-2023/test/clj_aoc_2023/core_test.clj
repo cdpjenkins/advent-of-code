@@ -8,19 +8,25 @@
                        "treb7uchet"])
 
 (defn first-digit [line]
-  (Integer. (first (re-seq #"[0-9]" line))))
+  (->> line
+       (re-seq #"\d")
+       (first)
+       (Integer.)))
 
 (defn last-digit [line]
-  (Integer. (last (re-seq #"[0-9]" line))))
+  (->> line
+       (re-seq #"\d")
+       (last)
+       (Integer.)))
 
-(defn value-of-firstT-and-last [line]
+(defn value-of-first-and-last [line]
   (+ (* (first-digit line) 10)
      (last-digit line)))
 
 (defn day01-part1 [input]
-  (reduce + 0 
-          (map  value-of-first-and-last input)))
-
+  (->> input
+       (map value-of-first-and-last)
+       (reduce + 0)))
 
 (deftest a-test
   (testing "Day 01 part 1"
@@ -30,4 +36,5 @@
 (comment
   (first-digit "1abc2")
   (last-digit "12345blah9jkdsfh")
+
   )

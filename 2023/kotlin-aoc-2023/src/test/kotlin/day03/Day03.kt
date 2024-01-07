@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 val partNumberRegex = "(\\d+)".toRegex()
-val symbolRegex = "([^\\d\\s.])".toRegex()
 
 private fun part1SumOfPartNumbers(testInput: List<String>): Int {
     val (_, partNumbers) = parseInput(testInput)
@@ -21,18 +20,13 @@ private fun part2SumOfGearRatios(testInput: List<String>): Int {
 
 private fun parseInput(testInput: List<String>): Pair<List<Symbol>, List<PartNumber>> {
     val symbols = testInput.withIndex()
-        .flatMap { (y, line) -> parseSymbols(y, line) }
+        .flatMap { (y, line) -> Symbol.parseSymbols(y, line) }
     val partNumbers = testInput.withIndex()
         .flatMap { (y, line) -> parseNumbers(y, line) }
         .filter { it.isAdjacentToAnyOf(symbols) }
 
     return Pair(symbols, partNumbers)
 }
-
-fun parseSymbols(y: Int, line: String) =
-    symbolRegex
-        .findAll(line)
-        .map { Symbol(it.value, it.range.start, y) }
 
 fun parseNumbers(y: Int, line: String) =
     partNumberRegex
@@ -66,6 +60,13 @@ data class Symbol(
                     0
                 }
             }
+    companion object {
+        val symbolRegex = "([^\\d\\s.])".toRegex()
+        fun parseSymbols(y: Int, line: String) =
+            symbolRegex
+                .findAll(line)
+                .map { Symbol(it.value, it.range.start, y) }
+    }
 }
 
 class Day03Test {

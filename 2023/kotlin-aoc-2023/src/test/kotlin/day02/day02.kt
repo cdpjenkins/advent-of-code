@@ -5,37 +5,6 @@ import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class Day02 {
-    @Test
-    internal fun `part 1 sample input`() {
-        part1(testInput) shouldBe 8
-    }
-
-    @Test
-    internal fun `part 1 real input`() {
-        part1(readInputFileToList("day02.txt")) shouldBe 2439
-    }
-
-    @Test
-    internal fun `part 2 sample input`() {
-        part2(testInput) shouldBe 2286
-    }
-
-    @Test
-    internal fun `part 2 real input`() {
-        part2(readInputFileToList("day02.txt")) shouldBe 63711
-    }
-
-    private fun part1(input: List<String>) =
-        Game.parseGamesFrom(input)
-            .filter { it.isPossibleIfCubesAreReplaced() }
-            .sumOf { it.id }
-
-    private fun part2(input: List<String>) =
-        Game.parseGamesFrom(input)
-            .sumOf { it.power() }
-}
-
 data class Game(
     val id: Int,
     val sets: List<GameSet>,
@@ -102,3 +71,34 @@ val testInput =
         Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
         Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
     """.trimIndent().lines()
+
+class Day02Test {
+    @Test
+    internal fun `part 1 sample input`() {
+        part1(testInput) shouldBe 8
+    }
+
+    @Test
+    internal fun `part 1 real input`() {
+        part1(readInputFileToList("day02.txt")) shouldBe 2439
+    }
+
+    @Test
+    internal fun `part 2 sample input`() {
+        part2(testInput) shouldBe 2286
+    }
+
+    @Test
+    internal fun `part 2 real input`() {
+        part2(readInputFileToList("day02.txt")) shouldBe 63711
+    }
+
+    private fun part1(input: List<String>) =
+        Game.parseGamesFrom(input)
+            .filter { it.isPossibleIfCubesAreReplaced() }
+            .sumOf { it.id }
+
+    private fun part2(input: List<String>) =
+        Game.parseGamesFrom(input)
+            .sumOf { it.power() }
+}

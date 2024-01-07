@@ -21,15 +21,20 @@
     (is (= 2439 (sut/day02-part1 (read-real-input "day02"))))))
 
 (deftest part-2
-  (comment
-    (testing "Day 01 part 2 with test input"
-      (is (= -1 (sut/day02-part2 day02-test-input))))
+  (testing "Day 01 part 2 with test input"
+    (is (= 2286 (sut/day02-part2 day02-test-input))))
 
-    (testing "Day 01 part 2 with real input"
-      (is (= -1 (sut/day02-part2 (read-real-input "day02")))))))
+  (testing "Day 01 part 2 with real input"
+    (is (= 63711 (sut/day02-part2 (read-real-input "day02")))))
+  )
 
 (comment
   (sut/day02-part1 day02-test-input)
+  (sut/day02-part2 day02-test-input)
+  (->> day02-test-input
+       (map sut/parse-game)
+       (map :rounds)
+      ;;  (map :red)
+       )
 
-  (parse-long "argh")
   )

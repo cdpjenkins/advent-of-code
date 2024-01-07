@@ -18,7 +18,7 @@
   (->> (s/split input #";")
        (map parse-round)))
 
-(defn- parse-game [line]
+(defn parse-game [line]
   (let [[header-str rounds-str] (s/split line #":") ] 
     {:id (parse-game-header header-str)
      :rounds (parse-rounds rounds-str)}))
@@ -33,6 +33,14 @@
   (every? round-is-valid
           (:rounds game)))
 
+(defn gimme-the-power [game]
+  (let [rounds (:rounds game)
+        max-red (apply max (map :red rounds))
+        max-green (apply max (map :green rounds))
+        max-blue (apply max (map :blue rounds))]
+    (* max-red max-green max-blue))
+  )
+
 (defn day02-part1 [input]
   (->> input
        (map parse-game)
@@ -41,12 +49,15 @@
        (reduce + 0)))
 
 (defn day02-part2 [input]
-  1234)
+  (->> input
+       (map parse-game)
+       (map gimme-the-power)
+       (reduce + 0)))
 
 (comment
+  (parse-round " 8 green, 6 blue, 20 red")
+  (parse-rounds " 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red")
   (parse-game "Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red")
   
-  (prn (re-seq #"(\d+) red" " 8 green, 6 blue, 20 red"))
-
-  
+  (prn (re-seq #"(\d+) red" " 8 green, 6 blue, 20 red")) 
   )

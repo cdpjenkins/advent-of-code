@@ -10,9 +10,9 @@
   (let [[_ reds] (re-find #"(\d+) red" round-str)
         [_ greens] (re-find #"(\d+) green" round-str)
         [_ blues] (re-find #"(\d+) blue" round-str)]
-    {:red (or (some-> reds (parse-long)) 0)
-     :green (or (some-> greens (parse-long)) 0)
-     :blue (or (some-> blues (parse-long)) 0)}))
+    {:red (-> reds (some-> (parse-long)) (or 0)) 
+     :green (-> greens (some-> (parse-long)) (or 0))
+     :blue (-> blues (some-> (parse-long)) (or 0))}))
 
 (defn- parse-rounds [input]
   (->> (s/split input #";")

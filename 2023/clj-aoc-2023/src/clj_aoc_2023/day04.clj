@@ -8,7 +8,7 @@
         my-numbers (-> my-str (s/trim) (s/split #" +") (set))]
     [card-num winning-numbers my-numbers]))
 
-;; Slightly dodgy power of 2 that maps 0 to 0...
+;; Slightly dodgy power of 2 that maps -1 to 0...
 (defn- pow2 [x]
   (cond
     (< x 0 ) 0

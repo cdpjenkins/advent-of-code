@@ -25,15 +25,13 @@
   (testing "Day 01 part 1 with real input"
     (is (= 546312 (sut/day03-part1 (read-real-input "day03"))))))
 
-(deftest part-2
-  (comment
-    (testing "Part 2 with test input"
-      (is (= 2286 (sut/day03-part2 day03-test-input))))
-    (testing "Part 2 with real input"
-      (is (= 63711 (sut/day03-part2 (read-real-input "day03")))))))
+(deftest part-2 
+  (testing "Part 2 with test input"
+     (is (= 467835 (sut/day03-part2 day03-test-input))))
+   (testing "Part 2 with real input"
+     (is (= 87449461 (sut/day03-part2 (read-real-input "day03"))))))
 
 (deftest internals
-
   (testing "Adjacency between symbols and part-numbers"
     (let [number {:begin-x 1
                   :end-x 3
@@ -71,6 +69,8 @@
 
   (.start m)
   (.end m)
+
+  (sut/day03-part2 day03-test-input)
 
 
   (use 'clojure.pprint)

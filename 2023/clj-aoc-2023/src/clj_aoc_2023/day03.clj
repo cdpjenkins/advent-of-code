@@ -22,6 +22,13 @@
                    nil))
                 line))
 
+(defn- parse-stars [y line]
+  (keep-indexed (fn [x c]
+                  (if (= \* c)
+                    [x y]
+                    nil))
+                line))
+
 (defn adjacent-to-symbol [number sym]
   (and
    (>= (second sym) (dec (:y number)))
@@ -29,7 +36,7 @@
    (>= (first sym) (dec (:begin-x number)))
    (<= (first sym) (:end-x number))))
 
-(defn day03-part1 [input]
+(defn part-numbers-in [input] 
   (let [numbers (apply concat
                        (map-indexed parse-line input))
         symbols (apply concat
@@ -39,17 +46,31 @@
                                  :when (adjacent-to-symbol number sym)]
                              number)
         part-numbers (set part-numbers-list)]
-    (->> part-numbers
-         (map :num)
-         (reduce + 0)
-         ))
-)
+    part-numbers))
+
+(defn gear-ratio [star part-numbers]
+  (let [adjacent-part-numbers
+        (for [part-number part-numbers
+              :when (adjacent-to-symbol part-number star)]
+          part-number)]
+    (if (= 2 (count adjacent-part-numbers))
+      (* (:num (first adjacent-part-numbers))
+         (:num (second adjacent-part-numbers)))
+      0)))
+
+(defn day03-part1 [input]
+  (->> (part-numbers-in input)
+       (map :num)
+       (reduce + 0)))
 
 (defn day03-part2 [input] 
-  1234)
+  (let [part-numbers (part-numbers-in input)
+        stars (apply concat (map-indexed parse-stars input))]
+
+    (reduce + 0 (for [star stars]
+                  (gear-ratio star part-numbers)))))
 
 (comment
-
   (use 'clojure.pprint)
 
   (pprint
@@ -67,4 +88,8 @@
      (day03-part1 input)))
 
   (parse-symbols 5 ".*..12...*")
+
+  (for [part-number [1 2 3]
+        :when (adjacent-to-symbol part-number [1 2])])
+
   )

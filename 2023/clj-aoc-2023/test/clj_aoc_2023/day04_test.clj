@@ -3,7 +3,7 @@
             [clojure.string :as s]
             [clojure.test :refer :all]))
 
-(def day04-test-input 
+(def day04-test-input
   (s/split-lines
 "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
 Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
@@ -22,13 +22,13 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"))
   (testing "Part 1 with real input"
     (is (= 18653 (sut/day04-part1 (read-real-input "day04"))))))
 
-(comment
-  (deftest part-2 
-    (testing "Part 2 with test input"
-      (is (= -1 (sut/day04-part2 day04-test-input))))
-    (testing "Part 2 with real input"
-      (is (= -1 (sut/day04-part2 (read-real-input "day04"))))))
-  )
+(deftest part-2
+  (testing "Part 2 with test input"
+    (is (= 30 (sut/day04-part2 day04-test-input))))
+  (testing "Part 2 with real input"
+    (is (= 5921508 (sut/day04-part2 (read-real-input "day04")))))
+
+  (comment))
 
 (comment
   (sut/day04-part2 day04-test-input)
@@ -44,6 +44,4 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"))
            (recur (conj nums {:begin (.start matcher)
                               :end (.end matcher)
                               :num (parse-long (.group matcher))})))
-         nums))))
-  
-  )
+         nums)))))

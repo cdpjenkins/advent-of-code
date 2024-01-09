@@ -19,20 +19,51 @@
   (let [my-winning-numbers (filter winning-numbers my-numbers)]
     (pow2 (dec (count my-winning-numbers)))))
 
+(defn- score-not-exponential [[_ winning-numbers my-numbers]]
+  (let [my-winning-numbers (filter winning-numbers my-numbers)]
+    (max 0
+         (count my-winning-numbers))))
+
 (defn day04-part1 [input]
   (->> input
        (map parse-card)
        (map score)
        (reduce +)))
 
-(defn day04-part2 [input] 
-  1234
+(defn- add-cards [index cards-to-touch score-to-add card-frequencies]
+  (if (zero? cards-to-touch)
+    card-frequencies
+    (add-cards (inc index)
+               (dec cards-to-touch)
+               score-to-add
+               (assoc card-frequencies
+                      index
+                      (+ score-to-add (card-frequencies index))))))
+
+(defn- update-frequencies [index scores card-frequencies]
+  (if (empty? scores)
+    card-frequencies
+    (update-frequencies
+     (inc index)
+     (rest scores)
+     (add-cards (inc index) (first scores) (card-frequencies index) card-frequencies))
+    )
   )
+
+(defn day04-part2 [input]
+  (let [scores (->> input
+                    (map parse-card)
+                    (map score-not-exponential))
+        card-frequencies (vec (repeat (count scores) 1))]
+    (reduce +
+            (update-frequencies 0 scores card-frequencies))))
 
 (comment
   (use 'clojure.pprint)
 
   (def card1 "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53")
+
+  (repeat 10 1)
 
   (day04-part1 input)
 

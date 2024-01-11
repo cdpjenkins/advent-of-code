@@ -19,13 +19,25 @@
   (or
    (first
     (keep-indexed #(when (not= %2 \space) %1) line))
-   0))
+   nil))
+
+  (use 'clojure.pprint)
+
+(defn- remove-indent [line n]
+  (if (<= n (count line))
+    (subs line n)
+    ""))
 
 (defn lines-with-indent-trimmed [big-string]
   (let [lines (s/split-lines big-string)
         maybe-removed-start (if (empty? (first lines))
                               (drop 1 lines)
                               lines)
-        min-indent (apply min (map indent-level maybe-removed-start))
-        trimmed-lines (map #(subs % min-indent) maybe-removed-start)] 
+        no-empty-lines (filter (complement empty?) maybe-removed-start)
+        min-indent (or (apply min (map indent-level no-empty-lines))
+                       0)
+        trimmed-lines (map #(remove-indent % min-indent) maybe-removed-start)]
+
+    (println min-indent)
+    (pprint no-empty-lines)
     trimmed-lines))

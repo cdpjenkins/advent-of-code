@@ -1,5 +1,6 @@
 (ns clj-aoc-2023.day03-test
   (:require [clj-aoc-2023.day03 :as sut]
+            [clj-aoc-2023.util :refer [read-real-input]]
             [clojure.string :as s]
             [clojure.test :refer :all]))
 
@@ -14,10 +15,6 @@
    "......755."
    "...$.*...."
    ".664.598.."])
-
-(defn read-real-input [name]
-  (s/split-lines
-   (slurp (str "../../advent-of-code-input/2023/" name ".txt"))))
 
 (deftest part-1
   (testing "Day 01 part 1 with test input"
@@ -53,34 +50,3 @@
         [-1 5]
         [12 5]
         [10 10]))))
-
-(comment
-  (def m
-    (re-matcher #"\d+" "....123...456..."))
-
-  (re-seq)
-
-
-  m
-
-  (.find m)
-
-  m
-
-  (.start m)
-  (.end m)
-
-  (sut/day03-part2 day03-test-input)
-
-
-  (use 'clojure.pprint)
-
-  (pprint
-   (let [matcher (re-matcher #"\d+" "....123...456...")]
-     (loop [nums #{}]
-       (if (.find matcher)
-         (do
-           (recur (conj nums {:begin (.start matcher)
-                              :end (.end matcher)
-                              :num (parse-long (.group matcher))})))
-         nums)))))

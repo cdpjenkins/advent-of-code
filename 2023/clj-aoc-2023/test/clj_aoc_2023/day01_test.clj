@@ -1,7 +1,7 @@
 (ns clj-aoc-2023.day01-test
-  (:require [clojure.test :refer :all]
-            [clojure.string :as s]
-            [clj-aoc-2023.day01 :as sut]))
+  (:require [clj-aoc-2023.day01 :as sut]
+            [clj-aoc-2023.util :refer [read-real-input]]
+            [clojure.test :refer :all]))
 
 (def day01-test-input ["1abc2"
                        "pqr3stu8vwx"
@@ -15,11 +15,6 @@
                          "4nineeightseven2"
                          "zoneight234"
                          "7pqrstsixteen"])
-
-(defn read-real-input [name]
-  (s/split-lines 
-   (slurp (str "../../advent-of-code-input/2023/" name ".txt"))))
-
 
 (deftest part-1
   (testing "Day 01 part 1 with test input"

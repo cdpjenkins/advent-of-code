@@ -36,8 +36,5 @@
         no-empty-lines (filter (complement empty?) maybe-removed-start)
         min-indent (or (apply min (map indent-level no-empty-lines))
                        0)
-        trimmed-lines (map #(remove-indent % min-indent) maybe-removed-start)]
-
-    (println min-indent)
-    (pprint no-empty-lines)
+        trimmed-lines (map #(remove-indent % min-indent) maybe-removed-start)] 
     trimmed-lines))

@@ -46,10 +46,57 @@
   (testing "Part 1 with real input"
     (is (= 165788812 (sut/part1 (read-real-input "day05"))))))
 
-(comment
-  (deftest part-2
-    (testing "Part 2 with test input"
-      (is (= 30 (sut/day04-part2 day04-test-input))))
-    (testing "Part 2 with real input"
-      (is (= 5921508 (sut/day04-part2 (read-real-input "day05"))))))
-  )
+(deftest part-2
+  (testing "Part 2 with test input"
+    (is (= 46 (sut/part2 test-input))))
+  (testing "Part 2 with real input"
+    (is (= 1928058 (sut/part2 (read-real-input "day05"))))))
+
+
+(deftest mapping-troublesome-ranges
+  (testing "This one is very troublesome"
+    (is (= [ [357106588 3453932]]
+           (sut/apply-range-to-seed-range
+            {:dest-start 357106588
+             :src-start 2091837170
+             :length 132629216} 
+            [2031777983 63513119])))
+    
+    (is (= [ [1990128498 40628127]]
+           (sut/apply-range-to-seed-range
+            {:dest-start 1315706170
+             :src-start 1357355655
+             :length 734481515}
+            [2031777983 40628127])))
+    
+    (is (= '([357106588 3453932] [1990128498 60059187]) 
+           (sut/apply-all-ranges-to-seed-range
+            {:ranges [{:dest-start 357106588
+                       :src-start 2091837170
+                       :length 132629216}
+                      {:dest-start 1315706170
+                       :src-start 1357355655
+                       :length 734481515}
+                      
+                      ]}
+            [2031777983, 63513119])
+           
+           
+           ))
+    
+    ))
+
+(deftest utilities
+  (testing "Can find overlap of two ranges"
+    (is (= nil (sut/overlap-with [0 5] [10 5])))
+    (is (= nil (sut/overlap-with [10 5] [0 5])))
+
+    (is (= [2 3] (sut/overlap-with [0 5] [2 5]))))
+  (testing "Can map seed ranges over map ranges (urgh)"
+
+    (let [a-range {:dest-start 110
+                   :src-start 10
+                   :length 5}]
+      (is (= [[110 5]] (sut/apply-range-to-seed-range a-range [5 10])))
+      
+      (is (= [[112 3]] (sut/apply-range-to-seed-range a-range [12 20]))))))

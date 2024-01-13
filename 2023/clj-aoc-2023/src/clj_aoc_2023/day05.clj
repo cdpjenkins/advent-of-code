@@ -17,6 +17,25 @@
      :destination destination
      :ranges ranges}))
 
+(defn- augment-map [this-map]
+   (let [ranges (:ranges this-map)
+         first-range (apply min-key :src-start ranges)
+         last-range (apply max-key :src-start ranges)
+         maybe-with-additional-first
+           (if (> (:src-start first-range) 0)
+             (conj ranges
+                   {:dest-start 0
+                    :src-start 0
+                    :length (:src-start first-range)})
+             ranges)
+         ston (+ (:src-start last-range) (:length last-range))
+         with-additional-last 
+           (conj maybe-with-additional-first
+                 {:dest-start ston
+                  :src-start ston 
+                  :length 10000000000})]
+     (assoc this-map :ranges with-additional-last)))
+
 (defn parse-seeds [line]
   (let [[_ ston] (re-matches #"^seeds: (.+)$" (first line))
         seeds-strs (s/split ston #" ")
@@ -53,17 +72,24 @@
    (reduce #(apply-map-to %2 %1) seed maps))
 
 (defn part1 [input]
-  (let [[seeds maps] (parse-input input)]
+  (let [[seeds maps-unaugmented] (parse-input input)
+        maps (map augment-map maps-unaugmented)]
     (apply min
      (map #(map-all-the-way maps %) seeds))))
  
 (defn part2 [input]
-  1234)
+  (let [[seeds maps-unaugmented] (parse-input input)
+        maps (map augment-map maps-unaugmented)] 
+;;    (pprint maps) 
+    ) 
+  12345
+  )
 
 (comment
   (use 'clojure.pprint)
 
   (part1 test-input)
+  (part2 test-input)
 
   (def fertilizer-to-water
     {:source "fertilizer",

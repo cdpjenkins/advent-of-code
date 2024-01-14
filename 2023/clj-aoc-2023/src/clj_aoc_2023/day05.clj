@@ -1,13 +1,12 @@
-(ns clj-aoc-2023.day05 
+(ns clj-aoc-2023.day05
   (:require [clj-aoc-2023.util :refer :all]
             [clojure.string :as s]))
 
 (defn- parse-range [line]
-  (let [[_ dest-start-str src-start-str length-str] (re-matches #"^(\d+) (\d+) (\d+)$" line)] 
+  (let [[_ dest-start-str src-start-str length-str] (re-matches #"^(\d+) (\d+) (\d+)$" line)]
     {:dest-start (parse-long dest-start-str)
      :src-start (parse-long src-start-str)
-     :length (parse-long length-str)}) 
-  )
+     :length (parse-long length-str)}))
 
 (defn- parse-map [section]
   (let [[_ source destination] (re-matches #"^([a-z]+)-to-([a-z]+) map:$"
@@ -18,7 +17,6 @@
      :ranges ranges}))
 
 (defn maybe-range-in-gap [[range1 range2]]
-  ;; (println "maybe-range-in-gap" range1 range2)
   (let [end1 (+ (:src-start range1) (:length range1))]
     (when (< end1 (:src-start range2))
       (let [length (- (:src-start range2) end1)]
@@ -27,34 +25,32 @@
          :length length}))))
 
 (defn interior-ranges [ranges]
-  ;; (println "interior-ranges")
-  ;; (pprint ranges)
-  (let [shizzle (partition 2 1 ranges)]
-       (keep maybe-range-in-gap shizzle)))
+  (keep maybe-range-in-gap (partition 2 1 ranges)))
+
+(defn augment-with-additional-first-range [ranges]
+  (if (> (:src-start (first ranges)) 0)
+    (conj ranges
+          {:dest-start 0
+           :src-start 0
+           :length (:src-start (first ranges))})
+    ranges))
+
+(defn with-additiona-last-rnage [ranges]
+  (let [last-range (+ (:src-start (last ranges)) (:length (last ranges)))]
+    (conj ranges
+          {:dest-start last-range
+           :src-start last-range
+           :length 100000000000})))
 
 (defn- augment-map [this-map]
-  ;; (println "augment-map")
-  ;; (pprint (:ranges this-map))
-   (let [ranges (:ranges this-map)
-         ranges-in-gaps (interior-ranges ranges)
-         ranges-with-gaps-filled (sort-by :src-start
-                                          (concat ranges ranges-in-gaps))
-         first-range (apply min-key :src-start ranges-with-gaps-filled)
-         last-range (apply max-key :src-start ranges-with-gaps-filled)
-         maybe-with-additional-first
-         (if (> (:src-start first-range) 0)
-           (conj ranges-with-gaps-filled
-                 {:dest-start 0
-                  :src-start 0
-                  :length (:src-start first-range)})
-           ranges-with-gaps-filled)
-         ston (+ (:src-start last-range) (:length last-range))
-         with-additional-last
-         (conj maybe-with-additional-first
-               {:dest-start ston
-                :src-start ston
-                :length 100000000000})]
-     (assoc this-map :ranges with-additional-last)))
+  (let [ranges (:ranges this-map)
+        ranges-in-gaps (interior-ranges ranges)
+        ranges-with-gaps-filled (sort-by :src-start
+                                         (concat ranges ranges-in-gaps))
+        maybe-with-additional-first (augment-with-additional-first-range ranges-with-gaps-filled)
+        with-additional-last (with-additiona-last-rnage maybe-with-additional-first)
+        ]
+    (assoc this-map :ranges with-additional-last)))
 
 (defn parse-seeds [line]
   (let [[_ ston] (re-matches #"^seeds: (.+)$" (first line))
@@ -63,7 +59,7 @@
     seeds))
 
 (defn parse-input [input]
-    (let [sections (split-by-p empty? input)
+  (let [sections (split-by-p empty? input)
         initial-seeds (->> sections
                            (first)
                            (parse-seeds))
@@ -81,11 +77,11 @@
       (+ pos-within-range dest-start)
       nil)))
 
-(defn overlap-with [[start1 length1] [start2 length2]] 
+(defn overlap-with [[start1 length1] [start2 length2]]
   (let [end1 (+ start1 length1)
         end2 (+ start2 length2)
         start (max start1 start2)
-        end (min end1 end2)] 
+        end (min end1 end2)]
     (if (<= end start)
       nil
       [start (- end start)])))
@@ -93,14 +89,13 @@
 (defn apply-range-to-seed-range [map-range seed-range]
   (let [{start1 :src-start
          length1 :length} map-range
-        [start2 length2] seed-range] 
-    )
+        [start2 length2] seed-range])
 
   (let [{start1 :src-start
          length1 :length} map-range
         [start2 length2] seed-range
-        overlap (overlap-with [start1 length1] [start2 length2])] 
-    
+        overlap (overlap-with [start1 length1] [start2 length2])]
+
 
     (if (some? overlap)
       (let [[start length] overlap
@@ -111,9 +106,8 @@
         ;; (println "offset me do" offset)
 
 
-        [[(+ (:dest-start map-range) offset) (second overlap)]]) 
-      []
-      )))
+        [[(+ (:dest-start map-range) offset) (second overlap)]])
+      [])))
 
 (defn apply-all-ranges-to-seed-range [mapping seed-range]
   (apply concat
@@ -131,17 +125,17 @@
         thing)))
 
 (defn map-all-the-way [maps seed]
-   (reduce #(apply-map-to %2 %1) seed maps))
+  (reduce #(apply-map-to %2 %1) seed maps))
 
 (defn map-ranges-all-the-freaking-way [maps seed-ranges]
-  (reduce #(apply-all-ranges-to-seed-ranges %2 %1) seed-ranges maps)) 
+  (reduce #(apply-all-ranges-to-seed-ranges %2 %1) seed-ranges maps))
 
 (defn part1 [input]
   (let [[seeds maps-unaugmented] (parse-input input)
         maps (map augment-map maps-unaugmented)]
     (apply min
-     (map #(map-all-the-way maps %) seeds))))
- 
+           (map #(map-all-the-way maps %) seeds))))
+
 (defn part2 [input]
   (let [[seeds-list maps-unaugmented] (parse-input input)
         maps (map augment-map maps-unaugmented)
@@ -171,9 +165,7 @@
     (println "interior shizzle")
     (pprint
      (interior-ranges
-      (sort-by :src-start (:ranges (first maps-unaugmented)))))
-
-    )
+      (sort-by :src-start (:ranges (first maps-unaugmented))))))
   (let [[seeds-list maps-unaugmented] (parse-input real-input)
         maps (map augment-map maps-unaugmented)
         seed-ranges (partition 2 seeds-list)]
@@ -238,6 +230,5 @@
 
       humidity-to-location map:
       60 56 37
-      56 93 4"))
-  )
+      56 93 4")))
 

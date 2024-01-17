@@ -10,16 +10,15 @@
                    (frequencies)
                    (map val)
                    (sort)
-                   (reverse)
-                   (take 2))]
+                   (reverse))]
     (condp = freqs
       [5]   :five-of-a-kind
       [4 1] :four-of-a-kind
       [3 2] :full-house
-      [3 1] :three-of-a-kind
-      [2 2] :two-pair
-      [2 1] :one-pair
-      [1 1] :high-card)))
+      [3 1 1] :three-of-a-kind
+      [2 2 1] :two-pair
+      [2 1 1 1] :one-pair
+      [1 1 1 1 1] :high-card)))
 
 (def hand-type-value {:five-of-a-kind   7
                       :four-of-a-kind   6

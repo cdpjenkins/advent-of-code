@@ -74,14 +74,13 @@
       (hand-value2 hand most-valuable-hand))))
 
 (defn part1 [input]
-  (let [hands-n-bids  (map parse-row input)
-        sorted-respect-due (sort-by #(hand-value-part1 (first %)) hands-n-bids)
-        indexed-hands (map vector (drop 1 (range)) sorted-respect-due)]
-    (reduce + (map (fn [[i [_ bid]]] (* i bid)) indexed-hands))))
+  (let [hands-and-bids  (map parse-row input)
+        sorted-hands-and-bids (sort-by #(hand-value-part1 (first %)) hands-and-bids)
+        indexed-hands-and-bids (map vector (drop 1 (range)) sorted-hands-and-bids)]
+    (reduce + (map (fn [[i [_ bid]]] (* i bid)) indexed-hands-and-bids))))
 
 (defn part2 [input]
-  (let [hands-n-bids  (map parse-row input)
-        sorted-respect-due (sort-by #(hand-value-part2 (first %)) hands-n-bids)
-        indexed-hands (map vector (drop 1 (range)) sorted-respect-due)]
-    (reduce + (map (fn [[i [_ bid]]] (* i bid)) indexed-hands))))
-
+  (let [hands-and-bids  (map parse-row input)
+        sorted-hands-and-bids (sort-by #(hand-value-part2 (first %)) hands-and-bids)
+        indexed-hands-and-bids (map vector (drop 1 (range)) sorted-hands-and-bids)]
+    (reduce + (map (fn [[i [_ bid]]] (* i bid)) indexed-hands-and-bids))))

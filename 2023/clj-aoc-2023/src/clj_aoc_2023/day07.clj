@@ -28,7 +28,7 @@
                       :one-pair         2
                       :high-card        1})
 
-(def card-value {\2 2
+(def card-value-part1 {\2 2
                  \3 3
                  \4 4
                  \5 5
@@ -42,19 +42,47 @@
                  \K 13
                  \A 14})
 
-(defn hand-value [hand]
+(def card-value-part2 (assoc card-value-part1
+                             \J 1))
+
+(defn hand-value [hand card-value-fn]
   (let [v (->> hand
                (hand-type)
                (hand-type-value))
-        card-values (map card-value hand)] 
+        card-values (map card-value-fn hand)]
     (apply vector (cons v card-values))))
+
+(defn hand-value2 [hand bestest-hand]
+  (let [v (->> bestest-hand
+               (hand-type)
+               (hand-type-value))
+        card-values (map card-value-part2 hand)]
+    (apply vector (cons v card-values))))
+
+(defn hand-value-part1 [hand]
+  (hand-value hand card-value-part1))
+
+(defn hand-value-part2 [hand]
+  (if (= hand "JJJJJ")
+    (hand-value "AAAAA" card-value-part2)
+    (let [num-jokers (count (filter #(= % \J) hand))
+          without-jokers (filter #(not= % \J) hand)
+          highest-freq-card (->> without-jokers
+                                 frequencies
+                                 (apply max-key val)
+                                 key)
+          most-valuable-hand (concat without-jokers (repeat num-jokers highest-freq-card))] 
+      (hand-value2 hand most-valuable-hand))))
 
 (defn part1 [input]
   (let [hands-n-bids  (map parse-row input)
-        sorted-respect-due (sort-by #(hand-value (first %)) hands-n-bids)
+        sorted-respect-due (sort-by #(hand-value-part1 (first %)) hands-n-bids)
         ston (map vector (drop 1 (range)) sorted-respect-due)]
     (reduce + (map (fn [[i [h b]]] (* i b)) ston))))
 
 (defn part2 [input]
-  1234)
+  (let [hands-n-bids  (map parse-row input)
+        sorted-respect-due (sort-by #(hand-value-part2 (first %)) hands-n-bids)
+        ston (map vector (drop 1 (range)) sorted-respect-due)]
+    (reduce + (map (fn [[i [h b]]] (* i b)) ston))))
 

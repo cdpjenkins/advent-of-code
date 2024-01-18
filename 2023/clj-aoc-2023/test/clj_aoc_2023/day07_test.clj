@@ -20,23 +20,22 @@
     (is (= 253954294 (sut/part1 real-input)))))
 
 (deftest sorting-hands
-  (testing "Sorting" 
+  (testing "Sorting"
     (is (= ["32T3K" "KTJJT" "KK677" "T55J5" "QQQJA"]
-         (sort-by sut/hand-value
-               ["32T3K" "T55J5" "KK677" "KTJJT" "QQQJA"])))))
+           (sort-by sut/hand-value-part1
+                    ["32T3K" "T55J5" "KK677" "KTJJT" "QQQJA"])))))
 
-(comment
-  (deftest part-2
-   (testing "Part 2 with test input"
-     (is (= -1 (sut/part2 test-input))))
-   (testing "Part 2 with real input"
-     (is (= -1 (sut/part2 real-input))))))
+(deftest part-2
+  (testing "Part 2 with test input"
+    (is (= 5905 (sut/part2 test-input))))
+  (testing "Part 2 with real input"
+    (is (= 254837398 (sut/part2 real-input)))))
 
 (deftest test-hand-type
-  (testing "hand-type figures out the types of hands" 
+  (testing "hand-type figures out the types of hands"
     (is (= :five-of-a-kind  (sut/hand-type "AAAAA")))
     (is (= :four-of-a-kind  (sut/hand-type "AA8AA")))
     (is (= :full-house      (sut/hand-type "23332")))
-    (is (= :three-of-a-kind (sut/hand-type "TTT98"))) 
+    (is (= :three-of-a-kind (sut/hand-type "TTT98")))
     (is (= :two-pair        (sut/hand-type "23432")))
     (is (= :one-pair        (sut/hand-type "A23A4")))))

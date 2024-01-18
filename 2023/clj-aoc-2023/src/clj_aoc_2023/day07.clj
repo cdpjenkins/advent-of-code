@@ -29,21 +29,20 @@
                       :high-card        1})
 
 (def card-value-part1 {\2 2
-                 \3 3
-                 \4 4
-                 \5 5
-                 \6 6
-                 \7 7
-                 \8 8
-                 \9 9
-                 \T 10
-                 \J 11
-                 \Q 12
-                 \K 13
-                 \A 14})
+                       \3 3
+                       \4 4
+                       \5 5
+                       \6 6
+                       \7 7
+                       \8 8
+                       \9 9
+                       \T 10
+                       \J 11
+                       \Q 12
+                       \K 13
+                       \A 14})
 
-(def card-value-part2 (assoc card-value-part1
-                             \J 1))
+(def card-value-part2 (assoc card-value-part1 \J 1))
 
 (defn hand-value [hand card-value-fn]
   (let [v (->> hand
@@ -77,12 +76,12 @@
 (defn part1 [input]
   (let [hands-n-bids  (map parse-row input)
         sorted-respect-due (sort-by #(hand-value-part1 (first %)) hands-n-bids)
-        ston (map vector (drop 1 (range)) sorted-respect-due)]
-    (reduce + (map (fn [[i [h b]]] (* i b)) ston))))
+        indexed-hands (map vector (drop 1 (range)) sorted-respect-due)]
+    (reduce + (map (fn [[i [_ bid]]] (* i bid)) indexed-hands))))
 
 (defn part2 [input]
   (let [hands-n-bids  (map parse-row input)
         sorted-respect-due (sort-by #(hand-value-part2 (first %)) hands-n-bids)
-        ston (map vector (drop 1 (range)) sorted-respect-due)]
-    (reduce + (map (fn [[i [h b]]] (* i b)) ston))))
+        indexed-hands (map vector (drop 1 (range)) sorted-respect-due)]
+    (reduce + (map (fn [[i [_ bid]]] (* i bid)) indexed-hands))))
 

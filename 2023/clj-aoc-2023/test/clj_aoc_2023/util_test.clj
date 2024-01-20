@@ -17,3 +17,12 @@
                              ""
                              "this is another"
                              "paragraph"])))))
+
+(deftest test-lines-with-index-trimmed
+  (testing "Can cope with blank (but not completely empty) lines"
+    
+    (is (some?
+         (sut/lines-with-indent-trimmed "
+                Look out, a blank (not not empty) line follows this
+                
+                Oh dear!")))))

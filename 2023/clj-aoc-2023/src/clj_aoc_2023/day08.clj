@@ -3,7 +3,7 @@
             [clojure.string :as s]))
 
 (defn instructions-of [input]
-  (first input))
+  (cycle (first input)))
 
 (defn node-of [line]
   (let [[_ n l r] (re-matches #"([A-Z0-9]{3}) = \(([A-Z0-9]{3}), ([A-Z0-9]{3})\)" line)] 
@@ -43,13 +43,13 @@
       (throw (RuntimeException. (str "urghghgh" t1 t2))))))
 
 (defn part1 [input]
-  (let [instructions (cycle (instructions-of input))
+  (let [instructions (instructions-of input)
         network (network-of input)
         path (path-from network instructions "AAA")]
     (first (indexes-that-hit-end-nodes #(= % "ZZZ") path))))
 
 (defn part2 [input]
-    (let [instructions (cycle (instructions-of input))
+    (let [instructions (instructions-of input)
           network (network-of input)
           start-nodes (filter #(s/ends-with? % "A") (keys network))
           cycle-times (map #(cycle-time network instructions %) start-nodes)] 

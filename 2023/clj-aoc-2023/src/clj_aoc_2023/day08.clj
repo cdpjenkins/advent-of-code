@@ -20,7 +20,7 @@
     (condp = instruction
       \L left
       \R right
-      :else (throw (RuntimeException. (str "Invalid instruction:]" instruction)))))) 
+      :else (throw (RuntimeException. (str "Invalid instruction:" instruction)))))) 
 
 (defn- path-from [network instructions start-node]
   (reductions #(move network %2 %1)

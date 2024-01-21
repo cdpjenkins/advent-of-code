@@ -37,7 +37,7 @@
       t1
       ;; This algorithm relies on the fact that we'll reach an end node after
       ;; t1 steps and then will reach it again after t1 more steps. It's
-      ;; rather fortunate that the input has this properly - it would not do
+      ;; rather fortunate that the input has this property - it would not do
       ;; in the general case, which would make this problem much harder to
       ;; solve.
       (throw (RuntimeException. (str "urghghgh" t1 t2))))))

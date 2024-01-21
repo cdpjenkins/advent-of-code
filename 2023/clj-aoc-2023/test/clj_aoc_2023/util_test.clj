@@ -26,3 +26,12 @@
                 Look out, a blank (not not empty) line follows this
                 
                 Oh dear!")))))
+
+(deftest test-gcd
+  (testing "Can compute gcd of two numbers"
+    (is (= 4 (sut/gcd 16 12)))
+    (is (= 3 (sut/gcd 99 15)))))
+
+(deftest test-lcm
+  (testing "Can compute lcm"
+    (is (= 24 (sut/lcm 12 8)))))

@@ -21,8 +21,6 @@
     (keep-indexed #(when (not= %2 \space) %1) line))
    nil))
 
-  (use 'clojure.pprint)
-
 (defn- remove-indent [line n]
   (if (<= n (count line))
     (subs line n)
@@ -38,3 +36,13 @@
                        0)
         trimmed-lines (map #(remove-indent % min-indent) maybe-removed-start)] 
     trimmed-lines))
+
+(defn gcd [a b]
+  (loop [a a
+         b b]
+    (if (> b 0)
+      (recur b (mod a b))
+      a)))
+
+(defn lcm [a b]
+  (* a (/ b (gcd a b))))

@@ -16,12 +16,14 @@ private fun part1(input: List<String>): Int {
 private fun part2(input: List<String>): Int {
     val (leftList, rightList) = parseInput(input)
 
+    val frequenciesInRightList = rightList.groupingBy { it }.eachCount().withDefault { 0 }
+
     return leftList
-        .map { similarityScore(it, rightList) }
+        .map { similarityScore(it, frequenciesInRightList) }
         .sum()
 }
 
-private fun similarityScore(num: Int, rightList: List<Int>) = num * rightList.count { (it == num) }
+private fun similarityScore(num: Int, rightList: Map<Int, Int>) = num * (rightList.getValue(num))
 
 private fun parseInput(input: List<String>): Pair<List<Int>, List<Int>> {
     val linesAsInts = input.map { it.split(" +".toRegex()).map { it.toInt() } }

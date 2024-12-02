@@ -4,7 +4,6 @@ fun part1(input: List<String>) =
     input.map { it.parseReport() }
         .count { it.isSafe() }
 
-
 fun part2(input: List<String>) =
     input.map { it.parseReport() }
         .count { it.isSafeWithDampening() }

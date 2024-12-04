@@ -8,7 +8,7 @@ fun part1(input: List<String>) =
                 verticalsUpwards(input) +
                 diagonalsDownRight(input) +
                 diagonalsUpLeft(input) +
-                getDiagonalsDownLeft(input) +
+                diagonalsDownLeft(input) +
                 diagonalsUpRight(input)
     )
 
@@ -27,8 +27,8 @@ fun part2(input: List<String>) =
 
 private fun horizontalsForwards(input: List<String>) = input
 private fun horizontalsBackwards(input: List<String>) = horizontalsForwards(input).map { it.reversed() }
-private fun diagonalsUpRight(input: List<String>) = getDiagonalsDownLeft(input).map { it.reversed() }
-private fun getDiagonalsDownLeft(input: List<String>) = (input.width() * 2 - 2 downTo 0)
+private fun diagonalsUpRight(input: List<String>) = diagonalsDownLeft(input).map { it.reversed() }
+private fun diagonalsDownLeft(input: List<String>) = (input.width() * 2 - 2 downTo 0)
     .map { startX ->
         (0 until input.height()).map { y ->
             val x = startX - y

@@ -23,9 +23,7 @@ fun part2(input: List<String>): Int {
 
 fun List<Int>.isValidUpdate(rules: List<Pair<Int, Int>>) = zipWithNext().all { pair -> pair in rules }
 fun List<Int>.middlePageNumber() = this[size / 2]
-fun List<Int>.fixOrdering(rules: List<Pair<Int, Int>>) =
-    if (this.isValidUpdate(rules)) this
-    else this.sortedWith(rules.toComparator())
+fun List<Int>.fixOrdering(rules: List<Pair<Int, Int>>) = this.sortedWith(rules.toComparator())
 
 fun List<Pair<Int, Int>>.toComparator(): Comparator<Int> {
     return Comparator { a, b ->

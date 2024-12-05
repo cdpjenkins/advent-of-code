@@ -16,23 +16,23 @@ fun part2(input: List<String>): Int {
 
     return updates
         .filterNot { it.isValidUpdate(rules) }
-        .map { fixOrdering(it, rules) }
+        .map { it.fixOrdering(rules) }
         .map { it.middlePageNumber() }
         .sum()
 }
 
 fun List<Int>.isValidUpdate(rules: List<Pair<Int, Int>>) = zipWithNext().all { pair -> pair in rules }
 fun List<Int>.middlePageNumber() = this[size / 2]
-fun fixOrdering(it: List<Int>, rules: List<Pair<Int, Int>>): List<Int> {
-    return if (it.isValidUpdate(rules)) {
-        it
-    } else {
-        it.sortedWith { a, b ->
-            when {
-                Pair(a, b) in rules -> -1
-                Pair(b, a) in rules -> 1
-                else -> throw IllegalStateException("${a},${b}")
-            }
+fun List<Int>.fixOrdering(rules: List<Pair<Int, Int>>) =
+    if (this.isValidUpdate(rules)) this
+    else this.sortedWith(rules.toComparator())
+
+fun List<Pair<Int, Int>>.toComparator(): Comparator<Int> {
+    return Comparator { a, b ->
+        when {
+            Pair(a, b) in this -> -1
+            Pair(b, a) in this -> 1
+            else -> throw IllegalStateException("${a},${b}")
         }
     }
 }

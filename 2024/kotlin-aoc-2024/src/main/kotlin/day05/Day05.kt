@@ -1,7 +1,6 @@
 package day05
 
 import ListUtils.splitByBlank
-import RegexUtils.parseUsingRegex
 
 fun part1(input: List<String>): Int {
     val (rules, updates) = parseInput(input)
@@ -48,10 +47,4 @@ fun parseInput(input: List<String>): Pair<List<Pair<Int, Int>>, List<List<Int>>>
 }
 
 fun String.parseUpdate() = split(",").map { it.toInt() }
-
-val RULE_REGEX = """(\d+)\|(\d+)""".toRegex()
-fun String.parseRule(): Pair<Int, Int> {
-    val (lhsString, rhsString) = parseUsingRegex(RULE_REGEX)
-
-    return Pair(lhsString.toInt(), rhsString.toInt())
-}
+fun String.parseRule() = this.split("|").map { it.toInt() }.let { Pair(it[0], it[1]) }

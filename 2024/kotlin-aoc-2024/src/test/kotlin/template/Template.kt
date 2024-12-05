@@ -41,7 +41,4 @@ class TemplateTest {
 
 val testInput =
     """
-
-
-
     """.trimIndent().lines()

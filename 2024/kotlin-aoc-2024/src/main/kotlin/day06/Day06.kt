@@ -76,7 +76,7 @@ fun List<String>.parse(): Pair<Map<Point2D, Char>, Guard> {
         line.mapIndexed { x, c -> Point2D(x, y) to c }
     }.toMap()
 
-    val start = map.entries.firstOrNull { (p, c) -> c == '^' }!!.key
+    val start = map.entries.firstOrNull { (_, c) -> c == '^' }!!.key
 
     return Pair(map, Guard(start, Direction.UP))
 }

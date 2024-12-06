@@ -27,7 +27,7 @@ class Day06Test {
 
     @Test
     fun `generates correct path from test data`() {
-        val (map, start) = testInput.parse()
+        val (map, start) = testInput.parseInput()
         val poses = pathUntilWeFallOffTheMap(start, map)
 
         val posesString = asString(map, poses)
@@ -110,7 +110,7 @@ class Day06Test {
         """.trimIndent()
     }
 
-    private fun inputOf(s: String) = s.trimIndent().lines().parse()
+    private fun inputOf(s: String) = s.trimIndent().lines().parseInput()
 }
 
 val testInput =

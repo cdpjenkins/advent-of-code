@@ -1,17 +1,17 @@
 package day06
 
 fun part1(input: List<String>): Int {
-    val (map, start) = input.parse()
+    val (map, start) = input.parseInput()
     val poses = pathUntilWeFallOffTheMap(start, map)
 
     return poses.size
 }
 
 fun part2(input: List<String>): Int {
-    val (map, start) = input.parse()
-    val poses = pathUntilWeFallOffTheMap(start, map) - start.position
+    val (map, start) = input.parseInput()
+    val pointsOnOriginalPath = pathUntilWeFallOffTheMap(start, map) - start.position
 
-    return poses.count { resultsInCycle(start, map + (it to 'O')) }
+    return pointsOnOriginalPath.count { resultsInCycle(start, map + (it to 'O')) }
 }
 
 private fun Map<Point2D, Char>.isObstacleAt(it: Point2D) = this[it] == '#' || this[it] == 'O'
@@ -71,7 +71,7 @@ fun resultsInCycle(
     return false
 }
 
-fun List<String>.parse(): Pair<Map<Point2D, Char>, Guard> {
+fun List<String>.parseInput(): Pair<Map<Point2D, Char>, Guard> {
     val map = flatMapIndexed { y, line ->
         line.mapIndexed { x, c -> Point2D(x, y) to c }
     }.toMap()

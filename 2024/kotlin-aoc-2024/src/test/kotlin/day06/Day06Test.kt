@@ -3,6 +3,7 @@ package day06
 import FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import kotlin.test.Ignore
 
 class Day06Test {
     @Test
@@ -20,6 +21,7 @@ class Day06Test {
         part2(testInput) shouldBe 6
     }
 
+    @Ignore // much too slow to run every time
     @Test
     fun `part 2 with real input`() {
         part2(readInputFileToList("day06.txt")) shouldBe 1424

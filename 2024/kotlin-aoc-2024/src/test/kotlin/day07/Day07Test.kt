@@ -1,10 +1,8 @@
 package day07
 
 import FileUtil.readInputFileToList
-import RegexUtils.parseUsingRegex
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import kotlin.test.Ignore
 
 class Day07Test {
     @Test
@@ -22,7 +20,7 @@ class Day07Test {
         part2(testInput) shouldBe 11387L
     }
 
-    @Ignore // bit too slow and inefficient to run every time
+//    @Ignore // bit too slow and inefficient to run every time
     @Test
     fun `part 2 with real input`() {
         part2(readInputFileToList("day07.txt")) shouldBe 20928985450275L

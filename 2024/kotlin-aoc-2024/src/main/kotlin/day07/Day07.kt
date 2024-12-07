@@ -38,19 +38,39 @@ data class Equation(val testValue: Long, val operands: List<Long>) {
         }
 
     fun isValidUsingPlusAndMultiplyAndConcat() =
-        testValue in evaluateUsingPlusAndMultiplyAndConcat(operands.first(), operands.drop(1))
+        testValue in evaluateUsingPlusAndMultiplyAndConcat(testValue, operands.first(), operands.drop(1))
 
-    fun evaluateUsingPlusAndMultiplyAndConcat(acc: Long, rest: List<Long>): List<Long> =
-        if (rest.isEmpty()) {
+    fun evaluateUsingPlusAndMultiplyAndConcat(target: Long, acc: Long, rest: List<Long>): List<Long> =
+        if (acc > target) {
+            emptyList()
+        } else if (rest.isEmpty()) {
             listOf(acc)
         } else {
             val firstPossibility = acc + rest.first()
             val secondPossibility = acc * rest.first()
             val thirdPossibility = acc concatWith rest.first()
-            evaluateUsingPlusAndMultiplyAndConcat(firstPossibility, rest.drop(1)) +
-                    evaluateUsingPlusAndMultiplyAndConcat(secondPossibility, rest.drop(1)) +
-                    evaluateUsingPlusAndMultiplyAndConcat(thirdPossibility, rest.drop(1))
+            evaluateUsingPlusAndMultiplyAndConcat(target, firstPossibility, rest.drop(1)) +
+                    evaluateUsingPlusAndMultiplyAndConcat(target, secondPossibility, rest.drop(1)) +
+                    evaluateUsingPlusAndMultiplyAndConcat(target, thirdPossibility, rest.drop(1))
         }
 
-    private infix fun Long.concatWith(that: Long): Long = (this.toString() + that.toString()).toLong()
+    // concatenating using strings is slooooow
+    //    private infix fun Long.concatWith(that: Long): Long = (this.toString() + that.toString()).toLong()
+
+    // concatenating using actual maths is slightly faster
+    // with thanks to Cesar Tron-Lozai for finding this algorithm and posting on LJC Slack
+    private infix fun Long.concatWith(that: Long): Long {
+        var thatVar = that
+        var multiplier = 1
+
+        while (thatVar > 0) {
+            multiplier *= 10
+            thatVar /= 10
+        }
+
+        return this * multiplier + that
+    }
+
+    // wish I could figure out how to do this using log10... might be quicker, who knows. The floating point until is
+    // not exactly likely to be doing anything else, so I really hope it would be.
 }

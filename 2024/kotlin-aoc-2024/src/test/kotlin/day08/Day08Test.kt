@@ -6,10 +6,18 @@ import org.junit.jupiter.api.Test
 import kotlin.test.Ignore
 
 private fun part1(input: List<String>) =
-    AntennaMap
-        .parse(input)
-        .findAntinodes()
+    AntennaMap.parse(input)
+        .findAntinodesByTwiceDistance()
         .size
+
+private fun part2(input: List<String>): Int {
+
+    val map = AntennaMap.parse(input)
+
+    val stons = map.findAntinodesByResonantShizzle()
+
+    return stons.size
+}
 
 class AntennaMap(
     val map: Map<Vector2D, Char>,
@@ -17,13 +25,13 @@ class AntennaMap(
     val width: Int,
     val height: Int
 ) {
-    fun findAntinodes(): Set<Vector2D> =
+    fun findAntinodesByTwiceDistance(): Set<Vector2D> =
         antennas
             .keys
-            .flatMap { frequency -> findAntinodesForFrequency(frequency) }
+            .flatMap { frequency -> findAntinodesForFrequencyByTwiceDistance(frequency) }
             .toSet()
 
-    private fun findAntinodesForFrequency(frequency: Char): Set<Vector2D> {
+    private fun findAntinodesForFrequencyByTwiceDistance(frequency: Char): Set<Vector2D> {
         val antennasOfThisFrequency = antennas[frequency]!!
 
         val pairs = antennasOfThisFrequency.flatMapIndexed { i, pos1 ->
@@ -32,21 +40,23 @@ class AntennaMap(
             }
         }
 
-        return pairs.flatMap { antinodesFor(it.first, it.second) }.toSet()
+        return pairs.flatMap { antinodesForAPairOfAntennaeByTwiceDistance(it.first, it.second) }.toSet()
     }
 
-    private fun antinodesFor(first: Vector2D, second: Vector2D): List<Vector2D> {
+    private fun antinodesForAPairOfAntennaeByTwiceDistance(first: Vector2D, second: Vector2D): List<Vector2D> {
         val displacement = second - first
 
         val firstAntinode = second + displacement
         val secondAntinode = first - displacement
 
         return listOf(firstAntinode, secondAntinode)
-            .filter { it.x >= 0 && it.y >= 0 && it.x < width && it.y < height }
+            .filter { it.isWithinBoundsOfMap() }
     }
 
+    private fun Vector2D.isWithinBoundsOfMap() = x >= 0 && y >= 0 && x < width && y < height
+
     fun showAntinodesAsString(): String {
-        val antinodes = findAntinodes()
+        val antinodes = findAntinodesByTwiceDistance()
 
         return (0 until width).map { y ->
             (0 until height).map { x ->
@@ -54,6 +64,39 @@ class AntennaMap(
                 else map[Vector2D(x, y)] ?: '.'
             }.joinToString("")
         }.joinToString("\n")
+    }
+
+    fun findAntinodesByResonantShizzle(): Set<Vector2D> {
+        val ston = antennas
+            .keys
+            .flatMap { frequency -> findAntinodesForFrequencyByResonantShizzle(frequency) }
+            .toSet()
+
+        return ston
+    }
+
+    private fun findAntinodesForFrequencyByResonantShizzle(frequency: Char): Set<Vector2D> {
+        val antennasOfThisFrequency = antennas[frequency]!!
+
+        val pairs = antennasOfThisFrequency.flatMapIndexed { i, pos1 ->
+            antennasOfThisFrequency.drop(i + 1).map { pos2 ->
+                pos1 to pos2
+            }
+        }
+
+        return pairs.flatMap { antinodesForAPairOfAntennaeByResonantShizzle(it.first, it.second) }.toSet()
+    }
+
+    private fun antinodesForAPairOfAntennaeByResonantShizzle(first: Vector2D, second: Vector2D): Set<Vector2D> {
+        val displacement = second - first
+
+        val goingOneWay = generateSequence(second) { it + displacement }
+            .takeWhile { it.isWithinBoundsOfMap() }.toSet()
+
+        val goingTheOtherWay = generateSequence(first) { it - displacement }
+            .takeWhile { it.isWithinBoundsOfMap() }.toSet()
+
+        return goingOneWay union goingTheOtherWay
     }
 
     companion object {
@@ -96,10 +139,6 @@ data class Vector2D(val x: Int, val y: Int) {
         )
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
-}
-
 class Day08Test {
 
     @Test
@@ -112,16 +151,14 @@ class Day08Test {
         part1(readInputFileToList("day08.txt")) shouldBe 390
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInput) shouldBe 34
     }
 
-    @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+        part2(readInputFileToList("day08.txt")) shouldBe -1
     }
 
     @Test

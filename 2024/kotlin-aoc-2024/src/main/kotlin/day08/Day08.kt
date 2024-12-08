@@ -1,5 +1,7 @@
 package day08
 
+import utils.Vector2D
+
 fun part1(input: List<String>) =
     AntennaMap.parse(input)
         .findAntinodesByTwiceDistance()
@@ -111,18 +113,4 @@ class AntennaMap(
             return AntennaMap(map, antennas, width, height)
         }
     }
-}
-
-data class Vector2D(val x: Int, val y: Int) {
-    operator fun minus(that: Vector2D): Vector2D =
-        Vector2D(
-            this.x - that.x,
-            this.y - that.y
-        )
-
-    operator fun plus(that: Vector2D): Vector2D =
-        Vector2D(
-            this.x + that.x,
-            this.y + that.y
-        )
 }

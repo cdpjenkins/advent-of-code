@@ -12,18 +12,18 @@ private fun part1(input: List<String>) =
         .size
 
 class AntennaMap(
-    val map: Map<Point2D, Char>,
-    val antennas: Map<Char, List<Point2D>>,
+    val map: Map<Vector2D, Char>,
+    val antennas: Map<Char, List<Vector2D>>,
     val width: Int,
     val height: Int
 ) {
-    fun findAntinodes(): Set<Point2D> =
+    fun findAntinodes(): Set<Vector2D> =
         antennas
             .keys
             .flatMap { frequency -> findAntinodesForFrequency(frequency) }
             .toSet()
 
-    private fun findAntinodesForFrequency(frequency: Char): Set<Point2D> {
+    private fun findAntinodesForFrequency(frequency: Char): Set<Vector2D> {
         val antennasOfThisFrequency = antennas[frequency]!!
 
         val pairs = antennasOfThisFrequency.flatMapIndexed { i, pos1 ->
@@ -35,12 +35,11 @@ class AntennaMap(
         return pairs.flatMap { antinodesFor(it.first, it.second) }.toSet()
     }
 
-    private fun antinodesFor(first: Point2D, second: Point2D): List<Point2D> {
-        val dx = second.x - first.x
-        val dy = second.y - first.y
+    private fun antinodesFor(first: Vector2D, second: Vector2D): List<Vector2D> {
+        val displacement = second - first
 
-        val firstAntinode = Point2D(second.x + dx, second.y + dy)
-        val secondAntinode = Point2D(first.x - dx, first.y - dy)
+        val firstAntinode = second + displacement
+        val secondAntinode = first - displacement
 
         return listOf(firstAntinode, secondAntinode)
             .filter { it.x >= 0 && it.y >= 0 && it.x < width && it.y < height }
@@ -51,8 +50,8 @@ class AntennaMap(
 
         return (0 until width).map { y ->
             (0 until height).map { x ->
-                if (antinodes.contains(Point2D(x, y))) '#'
-                else map[Point2D(x, y)] ?: '.'
+                if (antinodes.contains(Vector2D(x, y))) '#'
+                else map[Vector2D(x, y)] ?: '.'
             }.joinToString("")
         }.joinToString("\n")
     }
@@ -65,7 +64,7 @@ class AntennaMap(
         fun parse(input: List<String>): AntennaMap {
             val map = input.flatMapIndexed { y, line ->
                 line.mapIndexed { x, c ->
-                    Point2D(x, y) to c
+                    Vector2D(x, y) to c
                 }
             }.toMap()
 
@@ -83,7 +82,19 @@ class AntennaMap(
     }
 }
 
-data class  Point2D(val x: Int, val y: Int)
+data class Vector2D(val x: Int, val y: Int) {
+    operator fun minus(that: Vector2D): Vector2D =
+        Vector2D(
+            this.x - that.x,
+            this.y - that.y
+        )
+
+    operator fun plus(that: Vector2D): Vector2D =
+        Vector2D(
+            this.x + that.x,
+            this.y + that.y
+        )
+}
 
 private fun part2(input: List<String>): Int {
     return 123

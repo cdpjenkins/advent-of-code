@@ -50,33 +50,42 @@ private fun String.pad(): String {
 }
 
 private fun Int.isOdd() = this % 2 == 1
+private fun Int.isEven() = !isOdd()
 
 private fun part2(input: String): Int {
 
-    val diskAsFiles = input.parseToFiles()
+    val (files, spaces) = input.parseToFiles()
+
+    println("files: $files")
+    println("spaces: $spaces")
+
+//    val listIterator = frikkinLinkedList.listIterator()
+
 
 //    println(diskAsFiles)
 
     return 123
 }
 
-private fun String.parseToFiles(): List<Element> {
-    return this
+private fun String.parseToFiles(): Pair<List<DiskFile>, List<FreeSpace>> {
+    val thangs = this
         .pad()
         .map { it.digitToInt() }
-        .windowed(2, 2)
-        .flatMapIndexed { i, (fileLangth, freeSpaceLength) ->
-            listOf(
-                DiskFile(fileLangth, i),
-                FreeSpace(freeSpaceLength)
-            )
-        }
-}
 
-private fun List<Element>.filesAsString(): String {
-    return this.map {
-        it.asString()
-    }.joinToString("")
+    var position = 0
+    val files = mutableListOf<DiskFile>()
+    val spaces = mutableListOf<FreeSpace>()
+    thangs.withIndex().forEach { (i, length) ->
+        val id = i/2
+        if (i.isEven()) {
+            files.add(DiskFile(position, length, id))
+        } else {
+            spaces.add(FreeSpace(position, length))
+        }
+        position += length
+    }
+
+    return Pair(files.toList(), spaces.toList())
 }
 
 sealed interface Element {
@@ -84,13 +93,22 @@ sealed interface Element {
 
     val id: Int
     val length: Int
+    val position: Int
 }
 
-data class DiskFile(override val length: Int, override val id: Int) : Element {
+data class DiskFile(
+    override val position: Int,
+    override val length: Int,
+    override val id: Int,
+) : Element {
     override fun asString() = List(length) { '0' + id}.joinToString("")
 }
 
-data class FreeSpace(override val length: Int, override val id: Int = -1) : Element {
+data class FreeSpace(
+    override val position: Int,
+    override val length: Int,
+    override val id: Int = -1,
+) : Element {
     override fun asString() = List(length) { '.' }.joinToString("")
 }
 
@@ -131,9 +149,30 @@ class Day09Test {
     }
 
     @Test
+    fun `can parse simple input into files`() {
+        val (files, freeSpaces) = "12345".parseToFiles()
+        filesAsString(files, freeSpaces) shouldBe "0..111....22222"
+    }
+
+    @Test
     fun `can parse test input into files`() {
-        "12345".parseToFiles().filesAsString() shouldBe "0..111....22222"
-        testInput.parseToFiles().filesAsString() shouldBe "00...111...2...333.44.5555.6666.777.888899"
+        val (files, freeSpaces) = testInput.parseToFiles()
+        filesAsString(files, freeSpaces) shouldBe "00...111...2...333.44.5555.6666.777.888899"
+    }
+
+    private fun filesAsString(files: List<DiskFile>, freeSpaces: List<FreeSpace>): String {
+        val lastFreeSpace = freeSpaces.last()
+
+
+        val mutableList = List(lastFreeSpace.position + lastFreeSpace.length) { -1 }.toMutableList()
+
+        files.forEach { file ->
+            (0 until file.length).forEach { i ->
+                mutableList[file.position + i] = file.id
+            }
+        }
+
+        return mutableList.asString()
     }
 }
 

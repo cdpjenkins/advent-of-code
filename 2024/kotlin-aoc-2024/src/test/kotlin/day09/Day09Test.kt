@@ -52,11 +52,49 @@ private fun String.pad(): String {
 private fun Int.isOdd() = this % 2 == 1
 
 private fun part2(input: String): Int {
+
+    val diskAsFiles = input.parseToFiles()
+
+//    println(diskAsFiles)
+
     return 123
 }
 
-class Day09Test {
+private fun String.parseToFiles(): List<Element> {
+    return this
+        .pad()
+        .map { it.digitToInt() }
+        .windowed(2, 2)
+        .flatMapIndexed { i, (fileLangth, freeSpaceLength) ->
+            listOf(
+                DiskFile(fileLangth, i),
+                FreeSpace(freeSpaceLength)
+            )
+        }
+}
 
+private fun List<Element>.filesAsString(): String {
+    return this.map {
+        it.asString()
+    }.joinToString("")
+}
+
+sealed interface Element {
+    fun asString(): String
+
+    val id: Int
+    val length: Int
+}
+
+data class DiskFile(override val length: Int, override val id: Int) : Element {
+    override fun asString() = List(length) { '0' + id}.joinToString("")
+}
+
+data class FreeSpace(override val length: Int, override val id: Int = -1) : Element {
+    override fun asString() = List(length) { '.' }.joinToString("")
+}
+
+class Day09Test {
     @Test
     fun `part 1 with test input`() {
         part1(testInput) shouldBe 1928
@@ -90,6 +128,12 @@ class Day09Test {
         val disk = testInput.parseToBlocks()
         disk.isFullyCompacted() shouldBe false
         disk.compact().asString() shouldBe "0099811188827773336446555566.............."
+    }
+
+    @Test
+    fun `can parse test input into files`() {
+        "12345".parseToFiles().filesAsString() shouldBe "0..111....22222"
+        testInput.parseToFiles().filesAsString() shouldBe "00...111...2...333.44.5555.6666.777.888899"
     }
 }
 

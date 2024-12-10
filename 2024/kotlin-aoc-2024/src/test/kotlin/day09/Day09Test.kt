@@ -3,7 +3,6 @@ package day09
 import FileUtil.readInputFileToString
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import kotlin.test.Ignore
 
 private fun part1(input: String): Long =
     input.parseToBlocks()
@@ -52,19 +51,28 @@ private fun String.pad(): String {
 private fun Int.isOdd() = this % 2 == 1
 private fun Int.isEven() = !isOdd()
 
-private fun part2(input: String): Int {
+private fun part2(input: String): Long {
 
-    val (files, spaces) = input.parseToFiles()
+    val (filesList, spacesList) = input.parseToFiles()
 
-    println("files: $files")
-    println("spaces: $spaces")
+    val newFiles = mutableListOf<DiskFile>()
+    val spaces = spacesList.toMutableList()
 
-//    val listIterator = frikkinLinkedList.listIterator()
+    filesList.reversed().forEach { file ->
+        val spaceIndex = spaces.indexOfFirst { file.fitsIn(it) }
 
+        if (spaceIndex == -1) {
+            newFiles.add(file)
+        } else {
+            val space = spaces[spaceIndex]
 
-//    println(diskAsFiles)
+            newFiles.add(file.copy(position = space.position))
+            spaces[spaceIndex] =
+                space.copy(position = space.position + file.length, length = space.length - file.length)
+        }
+    }
 
-    return 123
+    return newFiles.map { it.checksum() }.sum()
 }
 
 private fun String.parseToFiles(): Pair<List<DiskFile>, List<FreeSpace>> {
@@ -102,6 +110,13 @@ data class DiskFile(
     override val id: Int,
 ) : Element {
     override fun asString() = List(length) { '0' + id}.joinToString("")
+    fun fitsIn(space: FreeSpace) = space.length >= this.length && space.position < this.position
+    fun checksum(): Long {
+        // remember triangle numbers at school? hmmm?
+        return (0 until length).map { p->
+            ((position + p) * id).toLong()
+        }.sum()
+    }
 }
 
 data class FreeSpace(
@@ -123,16 +138,14 @@ class Day09Test {
         part1(readInputFileToString("day09.txt").trimEnd()) shouldBe 6346871685398L
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInput) shouldBe 2858
     }
 
-    @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToString("day09.txt")) shouldBe -1
+        part2(readInputFileToString("day09.txt").trimEnd()) shouldBe 6373055193464L
     }
 
     @Test
@@ -151,30 +164,29 @@ class Day09Test {
     @Test
     fun `can parse simple input into files`() {
         val (files, freeSpaces) = "12345".parseToFiles()
-        filesAsString(files, freeSpaces) shouldBe "0..111....22222"
+        filesAsString(files) shouldBe "0..111....22222"
     }
 
     @Test
     fun `can parse test input into files`() {
         val (files, freeSpaces) = testInput.parseToFiles()
-        filesAsString(files, freeSpaces) shouldBe "00...111...2...333.44.5555.6666.777.888899"
-    }
-
-    private fun filesAsString(files: List<DiskFile>, freeSpaces: List<FreeSpace>): String {
-        val lastFreeSpace = freeSpaces.last()
-
-
-        val mutableList = List(lastFreeSpace.position + lastFreeSpace.length) { -1 }.toMutableList()
-
-        files.forEach { file ->
-            (0 until file.length).forEach { i ->
-                mutableList[file.position + i] = file.id
-            }
-        }
-
-        return mutableList.asString()
+        filesAsString(files) shouldBe "00...111...2...333.44.5555.6666.777.888899"
     }
 }
+
+fun filesAsString(files: List<DiskFile>): String {
+    val last = files.maxBy { it.position }!!
+    val mutableList = List(last.position + last.length ) { -1 }.toMutableList()
+
+    files.forEach { file ->
+        (0 until file.length).forEach { i ->
+            mutableList[file.position + i] = file.id
+        }
+    }
+
+    return mutableList.asString()
+}
+
 
 private fun List<Int>.asString(): String {
     return this.map {

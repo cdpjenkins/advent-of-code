@@ -13,12 +13,17 @@ private fun List<Int>.checksum(): Long =
 fun List<Int>.compact(): List<Int> {
     val disk = this.toMutableList()
 
-    while (!disk.isFullyCompacted()) {
-        val firstFreeSpaceIndex = disk.indexOfFirst { it == -1 }
-        val lastOccupiedSpaceIndex = disk.indexOfLast { it != -1 }
+    var freePointer = disk.indexOfFirst { it == -1 }
+    var lastOccupiedPointer = disk.indexOfLast { it != -1 }
 
-        disk[firstFreeSpaceIndex] = disk[lastOccupiedSpaceIndex]
-        disk[lastOccupiedSpaceIndex] = -1
+    while (freePointer < lastOccupiedPointer) {
+        disk[freePointer] = disk[lastOccupiedPointer]
+        disk[lastOccupiedPointer] = -1
+
+        while (disk[freePointer] != -1)
+            freePointer++
+        while (disk[lastOccupiedPointer] == -1)
+            lastOccupiedPointer--
     }
 
     return disk.toList()
@@ -121,4 +126,13 @@ data class FreeSpace(
     override val id: Int = -1,
 ) : Element {
     override fun asString() = List(length) { '.' }.joinToString("")
+}
+
+
+fun List<Int>.asString(): String {
+    return this.map {
+        require(it in -1..9)
+        if (it == -1) '.'
+        else '0' + it
+    }.joinToString("")
 }

@@ -64,12 +64,4 @@ fun filesAsString(files: List<DiskFile>): String {
     return mutableList.asString()
 }
 
-private fun List<Int>.asString(): String {
-    return this.map {
-        require(it in -1..9)
-        if (it == -1) '.'
-        else '0' + it
-    }.joinToString("")
-}
-
 val testInput = """2333133121414131402"""

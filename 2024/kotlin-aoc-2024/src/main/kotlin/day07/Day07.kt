@@ -25,32 +25,32 @@ private fun String.parseEquation(): Equation {
 
 data class Equation(val testValue: Long, val operands: List<Long>) {
     fun isValidUsingPlusAndMultiply() =
-        testValue in evaluateUsingPlusAndMultiply(operands.first(), operands.drop(1))
+        evaluateUsingPlusAndMultiply(testValue, operands.first(), operands.drop(1))
 
-    fun evaluateUsingPlusAndMultiply(acc: Long, rest: List<Long>): List<Long> =
+    fun evaluateUsingPlusAndMultiply(testValue: Long, acc: Long, rest: List<Long>): Boolean =
         if (rest.isEmpty()) {
-            listOf(acc)
+            acc == testValue
         } else {
             val firstPossibility = acc + rest.first()
             val secondPossibility = acc * rest.first()
-            evaluateUsingPlusAndMultiply(firstPossibility, rest.drop(1)) +
-                    evaluateUsingPlusAndMultiply(secondPossibility, rest.drop(1))
+            evaluateUsingPlusAndMultiply(testValue, firstPossibility, rest.drop(1)) ||
+                    evaluateUsingPlusAndMultiply(testValue, secondPossibility, rest.drop(1))
         }
 
     fun isValidUsingPlusAndMultiplyAndConcat() =
-        testValue in evaluateUsingPlusAndMultiplyAndConcat(testValue, operands.first(), operands.drop(1))
+        evaluateUsingPlusAndMultiplyAndConcat(testValue, operands.first(), operands.drop(1))
 
-    fun evaluateUsingPlusAndMultiplyAndConcat(target: Long, acc: Long, rest: List<Long>): List<Long> =
-        if (acc > target) {
-            emptyList()
-        } else if (rest.isEmpty()) {
-            listOf(acc)
+    fun evaluateUsingPlusAndMultiplyAndConcat(target: Long, acc: Long, rest: List<Long>): Boolean =
+        if (rest.isEmpty()) {
+            acc == target
+        } else if (acc > target) {
+            false
         } else {
             val firstPossibility = acc + rest.first()
             val secondPossibility = acc * rest.first()
             val thirdPossibility = acc concatWith rest.first()
-            evaluateUsingPlusAndMultiplyAndConcat(target, firstPossibility, rest.drop(1)) +
-                    evaluateUsingPlusAndMultiplyAndConcat(target, secondPossibility, rest.drop(1)) +
+            evaluateUsingPlusAndMultiplyAndConcat(target, firstPossibility, rest.drop(1)) ||
+                    evaluateUsingPlusAndMultiplyAndConcat(target, secondPossibility, rest.drop(1)) ||
                     evaluateUsingPlusAndMultiplyAndConcat(target, thirdPossibility, rest.drop(1))
         }
 

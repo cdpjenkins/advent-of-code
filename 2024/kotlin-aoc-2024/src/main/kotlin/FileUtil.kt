@@ -6,6 +6,6 @@ object FileUtil {
     }
 
     fun readInputFileToString(filename: String): String {
-        return File("../../advent-of-code-input/2024/$filename").readText()
+        return File("../../advent-of-code-input/2024/$filename").readText().trimEnd('\n')
     }
 }

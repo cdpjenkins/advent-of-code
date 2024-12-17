@@ -25,9 +25,9 @@ private fun part2(input: List<String>): Int {
 private fun parse(input: List<String>): Triple<Map<Vector2D, Char>, Reindeer, Vector2D> {
     val map = input.parseMap()
 
-    val startPos = map.entries.first { (p, c) -> c == 'S' }.key
+    val startPos = map.entries.first { (_, c) -> c == 'S' }.key
     val start = Reindeer(startPos, Direction.EAST)
-    val endPos = map.entries.first { (p, c) -> c == 'E' }.key
+    val endPos = map.entries.first { (_, c) -> c == 'E' }.key
 
     return Triple(map, start, endPos)
 }

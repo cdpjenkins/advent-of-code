@@ -1,7 +1,7 @@
 package day13
 
-import ListUtils.splitByBlank
-import RegexUtils.parseUsingRegex
+import utils.ListUtils.splitByBlank
+import utils.RegexUtils.parseUsingRegex
 import kotlin.math.floor
 
 fun part1(input: List<String>) =

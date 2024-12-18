@@ -1,6 +1,6 @@
 package day11
 
-import FileUtil.readInputFileToString
+import utils.FileUtil.readInputFileToString
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 

@@ -1,7 +1,7 @@
 package day17
 
-import ListUtils.splitByBlank
-import RegexUtils.parseUsingRegex
+import utils.ListUtils.splitByBlank
+import utils.RegexUtils.parseUsingRegex
 
 fun part1(input: List<String>): String =
     input.parseToMachineState()

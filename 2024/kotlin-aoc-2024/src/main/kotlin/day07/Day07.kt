@@ -1,6 +1,6 @@
 package day07
 
-import RegexUtils.parseUsingRegex
+import utils.RegexUtils.parseUsingRegex
 
 fun part1(input: List<String>): Long =
     input.map { it.parseEquation() }

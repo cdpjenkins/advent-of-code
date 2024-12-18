@@ -1,6 +1,6 @@
 package day04
 
-import FileUtil.readInputFileToList
+import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 

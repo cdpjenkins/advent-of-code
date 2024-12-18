@@ -1,3 +1,5 @@
+package utils
+
 object ListUtils {
     fun List<String>.splitByBlank(): List<List<String>> =
         if (isEmpty()) {

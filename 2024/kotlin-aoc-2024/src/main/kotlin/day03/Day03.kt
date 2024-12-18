@@ -1,6 +1,6 @@
 package day03
 
-import RegexUtils.parseUsingRegex
+import utils.RegexUtils.parseUsingRegex
 
 fun part1(input: String) =
     """mul\((\d+),(\d+)\)""".toRegex().findAll(input)

@@ -1,6 +1,6 @@
 package day05
 
-import ListUtils.splitByBlank
+import utils.ListUtils.splitByBlank
 
 fun part1(input: List<String>): Int {
     val (rules, updates) = parseInput(input)

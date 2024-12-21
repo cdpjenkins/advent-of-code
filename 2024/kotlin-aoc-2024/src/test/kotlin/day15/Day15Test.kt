@@ -33,7 +33,7 @@ private fun parse(input: List<String>): Pair<Warehouse, String> {
     val (mapLines, directionLines) = input.splitByBlank()
 
     val gridWithStartMarked = mapLines.parseToGrid()
-    val robotStart: Vector2D = gridWithStartMarked.entries.first { (p, c) -> c == '@' }.key
+    val robotStart: Vector2D = gridWithStartMarked.entries.first { (_, c) -> c == '@' }.key
 
     val grid = gridWithStartMarked.map { (p, c) -> p to if (c == '@') '.' else c }.toMap()
 
@@ -136,7 +136,7 @@ class Day15Test {
 
     @Test
     fun `part 1 with real input`() {
-        part1(readInputFileToList("day15.txt")) shouldBe -1
+        part1(readInputFileToList("day15.txt")) shouldBe 1383666
     }
 
     @Ignore

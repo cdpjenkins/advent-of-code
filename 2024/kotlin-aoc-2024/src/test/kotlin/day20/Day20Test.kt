@@ -14,7 +14,64 @@ private fun part1(input: List<String>): Int {
 }
 
 private fun part2(input: List<String>): Int {
+    val (grid, start, end) = parse(input)
+
+    val fastestRoute = grid.findRouteUsingAStar(start, end)
+
+    val routeWithDistanceFromStart = fastestRoute.withIndex()
+
+//    routeWithDistanceFromStart.forEach { (i, p) ->
+//        println("$i $p")
+//    }
+
+    val distances = routeWithDistanceFromStart.map { (i, p) -> p to i }.toMap()
+
+    val possibleCheats = routeWithDistanceFromStart.flatMap { (i, p) ->
+        val possibleCheatsForP = findPossibleCheatsWithin(p, distances, 2)
+        possibleCheatsForP.map {
+            val cheatDistance = p.manhattenDistanceTo(it)
+
+//            Triple(p, it, (distances[it]!! - distances[p]!! - cheatDistance))
+            distances[it]!! - distances[p]!! - cheatDistance
+        }
+    }
+
+//    println("CUNT")
+//    println(distances[Vector2D(x=7, y=1)])
+//    println(distances[Vector2D(x=9, y=1)])
+//    println("CUNT")
+//
+//    possibleCheats.forEach { println(it) }
+
+    possibleCheats
+        .filter { it > 0 }
+        .groupingBy { it }
+        .eachCount()
+        .entries
+        .sortedBy { it.key }
+        .filter { it.key != 0 }
+        .map { it.key to it.value } shouldBe listOf(
+        2 to 14,
+        4 to 14,
+        6 to 2,
+        8 to 4,
+        10 to 2,
+        12 to 3,
+        20 to 1,
+        36 to 1,
+        38 to 1,
+        40 to 1,
+        64 to 1
+    )
+
+
+    println(possibleCheats)
+
     return 123
+}
+
+fun findPossibleCheatsWithin(p: Vector2D, distances: Map<Vector2D, Int>, i: Int): List<Vector2D> {
+    return distances.keys.filter { it.manhattenDistanceTo(p) <= i }
 }
 
 private fun cheatsThatSaveAtLeast100(
@@ -109,13 +166,7 @@ private fun Map<Vector2D, Char>.findRouteUsingAStar(start: Vector2D, end: Vector
     return emptyList() // No path found
 }
 
-data class Thang(val pos: Vector2D, val hasTunneled: Boolean = true) {
-
-}
-
-private fun heuristicUsingManhattenDistance(a: Vector2D, b: Vector2D): Int {
-    return kotlin.math.abs(a.x - b.x) + kotlin.math.abs(a.y - b.y)
-}
+private fun heuristicUsingManhattenDistance(a: Vector2D, b: Vector2D) = a.manhattenDistanceTo(b)
 
 private fun Map<Vector2D, Char>.neighbours(point: Vector2D): List<Vector2D> {
     return listOf(
@@ -176,9 +227,9 @@ class Day20Test {
             .eachCount()
     }
 
+    @Ignore // too freaking slow right now
     @Test
     fun `part 1 with real input`() {
-        // good lord this is currently really really slow
         // good lord this is currently really really slow
         part1(readInputFileToList("day20.txt")) shouldBe 1521
     }

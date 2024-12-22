@@ -6,7 +6,7 @@ import utils.ListUtils.splitByBlank
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import utils.Vector2D
-import utils.parseToGrid
+import utils.toGrid
 import kotlin.test.Ignore
 
 private fun part1(input: List<String>): Int {
@@ -32,7 +32,7 @@ private fun warehouseSequence(
 private fun parse(input: List<String>): Pair<Warehouse, String> {
     val (mapLines, directionLines) = input.splitByBlank()
 
-    val gridWithStartMarked = mapLines.parseToGrid()
+    val gridWithStartMarked = mapLines.toGrid()
     val robotStart: Vector2D = gridWithStartMarked.entries.first { (_, c) -> c == '@' }.key
 
     val grid = gridWithStartMarked.map { (p, c) -> p to if (c == '@') '.' else c }.toMap()

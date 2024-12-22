@@ -16,5 +16,5 @@ data class Vector2D(val x: Int, val y: Int) {
             this.y + that.y
         )
 
-    fun manhattenDistanceTo(that: Vector2D) = abs(x - that.x) + abs(y - that.y)
+    fun manhattanDistanceTo(that: Vector2D) = abs(x - that.x) + abs(y - that.y)
 }

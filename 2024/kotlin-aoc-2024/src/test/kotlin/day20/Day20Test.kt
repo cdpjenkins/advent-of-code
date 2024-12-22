@@ -13,30 +13,40 @@ private fun part1(input: List<String>): Int {
     return cheatsThatSaveAtLeast100(grid, start, end).size
 }
 
+private fun part2(input: List<String>): Int {
+    return 123
+}
+
 private fun cheatsThatSaveAtLeast100(
     grid: Map<Vector2D, Char>,
     start: Vector2D,
     end: Vector2D,
 ): List<Pair<Vector2D, Int>> {
-    val fastestRoute = grid.findRoute(start, end)
+    val fastestRoute = grid.findRouteUsingAStar(start, end)
     val fastestRouteWithoutCheats = fastestRoute.size - 1
 
+    val timeSavedPerCheat =
+        timePerCheat(grid, start, end)
+            .map { (p, l) ->  p to fastestRouteWithoutCheats - l }
+
+    return timeSavedPerCheat
+        .filter { (p, saved) -> saved >= 100 }
+}
+
+private fun timePerCheat(
+    grid: Map<Vector2D, Char>,
+    start: Vector2D,
+    end: Vector2D,
+): List<Pair<Vector2D, Int>> {
     val timePerCheat =
         grid.filter { (p, c) -> c == '#' }
-
             .map { (p, c) ->
                 val mutableGrid = grid.gridWithWallWipedOutAt(p)
 
-                val fastestRouteWithThisCheat = mutableGrid.findRoute(start, end).size - 1
+                val fastestRouteWithThisCheat = mutableGrid.findRouteUsingAStar(start, end).size - 1
                 p to fastestRouteWithThisCheat
             }
-
-    val timeSavedPerCheat = timePerCheat.map { (p, l) ->
-        p to fastestRouteWithoutCheats - l
-    }
-
-    return timeSavedPerCheat.sortedBy { (p, saved) -> saved }
-        .filter { (p, saved) -> saved >= 100 }
+    return timePerCheat
 }
 
 private fun Map<Vector2D, Char>.gridWithWallWipedOutAt(p: Vector2D): MutableMap<Vector2D, Char> {
@@ -64,19 +74,19 @@ private fun Map<Vector2D, Char>.asStringWith(tharPaths: Collection<Vector2D>): S
     }.joinToString("\n")
 }
 
-private fun Map<Vector2D, Char>.findRoute(start: Vector2D, end: Vector2D): List<Vector2D> {
-    val startThang = Thang(start, true)
+private fun Map<Vector2D, Char>.findRouteUsingAStar(start: Vector2D, end: Vector2D): List<Vector2D> {
+    val startThang = start
 
     val openSet = mutableSetOf(startThang)
-    val cameFrom = mutableMapOf<Thang, Thang>()
+    val cameFrom = mutableMapOf<Vector2D, Vector2D>()
     val gScore = mutableMapOf(startThang to 0)
     val fScore = mutableMapOf(startThang to heuristicUsingManhattenDistance(startThang, end))
 
     while (openSet.isNotEmpty()) {
         val current = openSet.minByOrNull { fScore[it] ?: Integer.MAX_VALUE } ?: break
 
-        if (current.pos == end) {
-            return reconstructPath(cameFrom, current).map { it.pos }
+        if (current == end) {
+            return reconstructPath(cameFrom, current)
         }
 
         openSet.remove(current)
@@ -103,38 +113,20 @@ data class Thang(val pos: Vector2D, val hasTunneled: Boolean = true) {
 
 }
 
-private fun heuristicUsingManhattenDistance(a: Thang, b: Vector2D): Int {
-    return kotlin.math.abs(a.pos.x - b.x) + kotlin.math.abs(a.pos.y - b.y)
+private fun heuristicUsingManhattenDistance(a: Vector2D, b: Vector2D): Int {
+    return kotlin.math.abs(a.x - b.x) + kotlin.math.abs(a.y - b.y)
 }
 
-private fun Map<Vector2D, Char>.neighboursSton(point: Vector2D): List<Vector2D> {
+private fun Map<Vector2D, Char>.neighbours(point: Vector2D): List<Vector2D> {
     return listOf(
         Vector2D(point.x + 1, point.y),
         Vector2D(point.x - 1, point.y),
         Vector2D(point.x, point.y + 1),
         Vector2D(point.x, point.y - 1)
-    )
+    ).filter { it in this.keys && this[it] != '#' }
 }
 
-private fun Map<Vector2D, Char>.neighbours(point: Thang): List<Thang> {
-    if (point.hasTunneled) {
-        return listOf(
-            Thang(Vector2D(point.pos.x + 1, point.pos.y)),
-            Thang(Vector2D(point.pos.x - 1, point.pos.y)),
-            Thang(Vector2D(point.pos.x, point.pos.y + 1)),
-            Thang(Vector2D(point.pos.x, point.pos.y - 1))
-        ).filter { it.pos in this.keys && this[it.pos] != '#' }
-    } else {
-        return listOf(
-            Thang(Vector2D(point.pos.x + 1, point.pos.y), true),
-            Thang(Vector2D(point.pos.x - 1, point.pos.y), true),
-            Thang(Vector2D(point.pos.x, point.pos.y + 1), true),
-            Thang(Vector2D(point.pos.x, point.pos.y - 1), true)
-        )
-    }
-}
-
-private fun reconstructPath(cameFrom: Map<Thang, Thang>, current: Thang): List<Thang> {
+private fun reconstructPath(cameFrom: Map<Vector2D, Vector2D>, current: Vector2D): List<Vector2D> {
     val path = mutableListOf(current)
     var currentNode = current
 
@@ -146,11 +138,43 @@ private fun reconstructPath(cameFrom: Map<Thang, Thang>, current: Thang): List<T
     return path
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
-}
-
 class Day20Test {
+
+    @Test
+    fun `part 1 with test input`() {
+        val (grid, start, end) = parse(testInput)
+
+        frequenciesOfTimeSavedByDifferentCheaters(grid, start, end)
+            .entries
+            .sortedBy { it.key }
+            .filter { it.key != 0 }
+            .map { it.key to it.value } shouldBe listOf(
+            2 to 14,
+            4 to 14,
+            6 to 2,
+            8 to 4,
+            10 to 2,
+            12 to 3,
+            20 to 1,
+            36 to 1,
+            38 to 1,
+            40 to 1,
+            64 to 1
+        )
+    }
+
+    private fun frequenciesOfTimeSavedByDifferentCheaters(
+        grid: Map<Vector2D, Char>,
+        start: Vector2D,
+        end: Vector2D,
+    ): Map<Int, Int> {
+        val fastestRouteWithoutCheats = grid.findRouteUsingAStar(start, end).size - 1
+
+        return timePerCheat(grid, start, end)
+            .map { (p, l) -> fastestRouteWithoutCheats - l }
+            .groupingBy { it }
+            .eachCount()
+    }
 
     @Test
     fun `part 1 with real input`() {
@@ -175,7 +199,7 @@ class Day20Test {
     fun `total time without cheating for testData`() {
         val (grid, start, end) = parse(testInput)
 
-        grid.findRoute(start, end).size - 1 shouldBe 84
+        grid.findRouteUsingAStar(start, end).size - 1 shouldBe 84
     }
 }
 

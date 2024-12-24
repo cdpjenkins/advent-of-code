@@ -18,6 +18,8 @@ fun find2000thSecretMeDo(secret: Int): Int {
 }
 
 fun secretSequence(initialSecret: Int) = generateSequence(initialSecret) { nextSecretNumber(it) }
+fun priceSequence() = secretSequence(123).map { it.price() }
+fun priceChangeSequence() = priceSequence().zipWithNext().map { (a, b) -> b - a }
 
 fun nextSecretNumber(secret: Int): Int {
     val step1 = (secret.shl(6) xor secret) and 0xFFFFFF
@@ -27,10 +29,16 @@ fun nextSecretNumber(secret: Int): Int {
     return step3
 }
 
-
 private fun part2(input: List<String>): Int {
+    val thang = input
+        .map { it.toInt() }
+
+
+
     return 123
 }
+
+fun Int.price() = this % 10
 
 class Day22Test {
 
@@ -39,6 +47,7 @@ class Day22Test {
         part1(testInput) shouldBe 37327623
     }
 
+    @Ignore
     @Test
     fun `part 1 with real input`() {
         part1(readInputFileToList("day22.txt")) shouldBe -1
@@ -76,6 +85,43 @@ class Day22Test {
                 )
     }
 
+    @Test
+    fun `price sequence from 123`() {
+        priceSequence()
+            .take(10)
+            .toList() shouldBe
+                listOf(
+                    3,
+                    0,
+                    6,
+                    5,
+                    4,
+                    4,
+                    6,
+                    4,
+                    4,
+                    2
+                )
+    }
+
+    @Test
+    fun `price change sequence from 123`() {
+        priceChangeSequence()
+            .take(9)
+            .toList() shouldBe
+                listOf(
+                    -3,
+                    6,
+                    -1,
+                    -1,
+                    0,
+                    2,
+                    -2,
+                    0,
+                    -2
+                )
+    }
+
 }
 
 val testInput =
@@ -85,3 +131,14 @@ val testInput =
         100
         2024
     """.trimIndent().lines()
+
+val testInputForPart2 =
+    """
+        1
+        2
+        3
+        2024
+    """.trimIndent().lines()
+
+
+

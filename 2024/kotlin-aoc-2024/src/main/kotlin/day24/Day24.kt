@@ -40,6 +40,13 @@ data class Device(val gatesMap: Map<String, Gate>) {
         return this.copy(gatesMap = newGates)
     }
 
+    /**
+     * To use the output of this, copy it into a file called `day24.dot` and run something like:
+     *
+     * `dot -Tsvg day24.dot  >output.svg`
+     *
+     * Then spend hours staring at the resulting circuit, trying to work out which bits are screwed up.
+     */
     fun printGraphViz() {
         println("digraph {")
         gatesMap.entries.forEach { (_, gate) -> gate.printGraphViz() }

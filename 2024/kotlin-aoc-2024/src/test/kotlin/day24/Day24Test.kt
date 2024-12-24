@@ -20,6 +20,53 @@ data class Device(val gatesMap: Map<String, Gate>) {
             .map { getValueFor(it) }
             .fold(0L) { acc, x -> acc.shl(1) + x }
 
+    fun withX(x: Long): Device {
+        val newGates = gatesMap.toMutableMap()
+        var xVar = x
+        for (i in (0 until 64)) {
+            val cunt = String.format("x%02d", i)
+            newGates[cunt] = Input(cunt, (xVar and 1).toInt())
+            xVar = xVar shr 1
+        }
+
+        return this.copy(gatesMap = newGates)
+    }
+
+    fun withY(y: Long): Device {
+        val newGates = gatesMap.toMutableMap()
+        var yVar = y
+        for (i in (0 until 64)) {
+            val cunt = String.format("y%02d", i)
+            newGates[cunt] = Input(cunt, (yVar and 1).toInt())
+            yVar = yVar shr 1
+        }
+
+        return this.copy(gatesMap = newGates)
+    }
+
+    fun getZ(): Long {
+        var zVar = 0L
+        for (i in (63 downTo 0)) {
+            zVar = zVar shl 1
+
+            val thisNodeId = String.format("z%02d", i)
+            val thisBit = gatesMap[thisNodeId]?.getValue(this) ?: 0
+
+            zVar = zVar or thisBit.toLong()
+        }
+
+        return zVar
+    }
+
+    fun printGraphViz() {
+        println("digraph {")
+        gatesMap.entries
+            .forEach { (id, gate) ->
+            gate.printGraphViz()
+        }
+        println("}")
+    }
+
     companion object {
         fun of(input: List<String>): Device {
             return Device((parseInputs(input) + parseGates(input)).toMap())
@@ -50,6 +97,7 @@ data class Device(val gatesMap: Map<String, Gate>) {
 
 sealed interface Gate {
     fun getValue(device: Device): Int
+    fun printGraphViz()
 }
 
 data class Operator(val operator: String, val inputGate1: String, val inputGate2: String, val outputGate: String): Gate {
@@ -65,24 +113,47 @@ data class Operator(val operator: String, val inputGate1: String, val inputGate2
         }
     }
 
+    override fun printGraphViz() {
+        println("  ${outputGate}  [color=\"${operator.toColour()}\"]")
+        println("  ${inputGate1} -> ${outputGate} [label=\"${operator}\"] [color=\"${operator.toColour()}\"]")
+        println("  ${inputGate2} -> ${outputGate} [label=\"${operator}\"] [color=\"${operator.toColour()}\"]")
+    }
+
     private fun computeAND(input1: Int, input2: Int) = if (input1 == 1 && input2 == 1) 1 else 0
     private fun computeOR(input1: Int, input2: Int) = if (input1 == 1 || input2 == 1) 1 else 0
     private fun computeXOR(input1: Int, input2: Int) = if (input1 != input2) 1 else 0
 }
 
+private fun String.toColour() =
+    when (this) {
+        "AND" -> "red"
+        "OR" -> "green"
+        "XOR" -> "blue"
+        else -> throw IllegalArgumentException("Unknown colour: $this")
+    }
+
 data class Input(val name: String, val value: Int): Gate {
     override fun getValue(device: Device) = value
+    override fun printGraphViz() {
+        // dim byd
+    }
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
+private fun part2(input: List<String>): String {
+    // Found manually, making use of GraphViz to visualise the cir  cuitry:
+    //
+    // z05 and bpf... Z should be fed by XORs
+    // z11 and hcc
+    // hqc and qcw    (feeds z24 and the next stage)
+    // z35 and fdw
+
+    return "bpf,fdw,hcc,hqc,qcw,z05,z11,z35"
 }
 
 class Day24Test {
 
     @Test
     fun `part 1 with simple test input`() {
-
         val input = simpleTestInput
 
         val device = Device.of(input)
@@ -103,16 +174,31 @@ class Day24Test {
         part1(readInputFileToList("day24.txt")) shouldBe 58367545758258
     }
 
-    @Ignore
     @Test
-    fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+    fun `part 2 with real input`() {
+        part2(readInputFileToList("day24.txt")) shouldBe "bpf,fdw,hcc,hqc,qcw,z05,z11,z35"
     }
 
     @Ignore
+    @OptIn(ExperimentalStdlibApi::class)
     @Test
-    fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+    fun `can set input and compute shizzle`() {
+        val initialDevice = Device.of(readInputFileToList("day24.txt"))
+
+        val device = initialDevice
+            .withX(0x1FFFFFFFF0)
+            .withY(0x0FFFFFFFF1)
+
+        // this fails due to the gates that need swapping
+        device.getZ().toHexString() shouldBe (0x1FFFFFFFF0 + 0x0FFFFFFFF1).toHexString()
+
+        // Possible future improvement: Actually implement swapping of gates so we can
+        // guarantee that we're fixing the right gates
+    }
+
+    @Test
+    fun `can generate graphviz graph`() {
+        Device.of(readInputFileToList("day24.txt")).printGraphViz()
     }
 }
 
@@ -180,3 +266,12 @@ val testInput =
         tgd XOR rvg -> z12
         tnw OR pbm -> gnj
     """.trimIndent().lines()
+
+// candidates
+//
+// z05 and bpf... Z should be fed by XORs
+// z11 and hcc
+// hqc and qcw    (feeds z24 and the next stage)
+// z35 and fdw
+
+// bpf,fdw,hcc,hqc,qcw,z05,z11,z35

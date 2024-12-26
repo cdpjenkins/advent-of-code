@@ -3,53 +3,6 @@ package day19
 import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
-import utils.ListUtils.splitByBlank
-
-private fun part1(input: List<String>): Int {
-    val (availableTowelsLines, designs) = input.splitByBlank()
-    val availableTowels = availableTowelsLines[0].split(", ")
-
-    val towelsRegex = ("(" + availableTowels.joinToString("|") + ")+").toRegex()
-
-    return designs.count { towelsRegex.matches(it) }
-}
-
-private fun part2(input: List<String>): Long {
-    val (availableTowelsLines, designs) = input.splitByBlank()
-    val availableTowels = availableTowelsLines[0].split(", ")
-
-    return solveUsingDFS(designs, availableTowels)
-}
-
-private fun solveUsingDFS(
-    designs: List<String>,
-    availableTowels: List<String>
-): Long {
-    val cache = mutableMapOf<String, Long>()
-
-    fun towelCombinations(design: String, availableTowels: List<String>): Long {
-        if (design in cache) {
-            return cache[design]!!
-        }
-        if (design.isEmpty()) {
-            return 1
-        } else {
-            val applicableTowels = availableTowels.filter { design.startsWith(it) }
-            val thisResult = applicableTowels.map {
-                towelCombinations(design.removePrefix(it), availableTowels)
-            }.sum()
-
-            cache[design] = thisResult
-
-            return thisResult
-        }
-    }
-
-    val result = designs.sumOf { towelCombinations(it, availableTowels) }
-    return result
-}
-
-
 
 class Day19Test {
     @Test

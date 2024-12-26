@@ -4,12 +4,9 @@ import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import utils.ListUtils.splitByBlank
-import kotlin.test.Ignore
 
 private fun part1(input: List<String>): Int {
-
     val (availableTowelsLines, designs) = input.splitByBlank()
-
     val availableTowels = availableTowelsLines[0].split(", ")
 
     val towelsRegex = ("(" + availableTowels.joinToString("|") + ")+").toRegex()
@@ -17,9 +14,42 @@ private fun part1(input: List<String>): Int {
     return designs.count { towelsRegex.matches(it) }
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
+private fun part2(input: List<String>): Long {
+    val (availableTowelsLines, designs) = input.splitByBlank()
+    val availableTowels = availableTowelsLines[0].split(", ")
+
+    return solveUsingDFS(designs, availableTowels)
 }
+
+private fun solveUsingDFS(
+    designs: List<String>,
+    availableTowels: List<String>
+): Long {
+    val cache = mutableMapOf<String, Long>()
+
+    fun towelCombinations(design: String, availableTowels: List<String>): Long {
+        if (design in cache) {
+            return cache[design]!!
+        }
+        if (design.isEmpty()) {
+            return 1
+        } else {
+            val applicableTowels = availableTowels.filter { design.startsWith(it) }
+            val thisResult = applicableTowels.map {
+                towelCombinations(design.removePrefix(it), availableTowels)
+            }.sum()
+
+            cache[design] = thisResult
+
+            return thisResult
+        }
+    }
+
+    val result = designs.sumOf { towelCombinations(it, availableTowels) }
+    return result
+}
+
+
 
 class Day19Test {
     @Test
@@ -29,19 +59,17 @@ class Day19Test {
 
     @Test
     fun `part 1 with real input`() {
-        part1(readInputFileToList("day19.txt")) shouldBe -1
+        part1(readInputFileToList("day19.txt")) shouldBe 374
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInput) shouldBe 16
     }
 
-    @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+        part2(readInputFileToList("day19.txt")) shouldBe 1100663950563322
     }
 }
 

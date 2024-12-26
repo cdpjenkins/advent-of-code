@@ -5,43 +5,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import kotlin.test.Ignore
 
-private fun part1(input: List<String>): Long {
-    return input
-        .map { it.toInt() }
-        .sumOf { find2000thSecretMeDo(it).toLong() }
-}
-
-fun find2000thSecretMeDo(secret: Int): Int {
-    return secretSequence(secret)
-        .drop(2000)
-        .first()
-}
-
-fun secretSequence(initialSecret: Int) = generateSequence(initialSecret) { nextSecretNumber(it) }
-fun priceSequence() = secretSequence(123).map { it.price() }
-fun priceChangeSequence() = priceSequence().zipWithNext().map { (a, b) -> b - a }
-
-fun nextSecretNumber(secret: Int): Int {
-    val step1 = (secret.shl(6) xor secret) and 0xFFFFFF
-    val step2 = (step1.shr(5) xor step1) and 0xFFFFFF
-    val step3 = (step2.shl(11) xor step2) and 0xFFFFFF
-
-    return step3
-}
-
-private fun part2(input: List<String>): Int {
-    val thang = input
-        .map { it.toInt() }
-
-
-
-    return 123
-}
-
-fun Int.price() = this % 10
-
 class Day22Test {
-
     @Test
     fun `part 1 with test input`() {
         part1(testInput) shouldBe 37327623
@@ -53,16 +17,16 @@ class Day22Test {
         part1(readInputFileToList("day22.txt")) shouldBe -1
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInputForPart2) shouldBe 23
     }
 
-    @Ignore
+    // This one is pretty slow. Even after optimising, it's still taking nearly 1.3 seconds.
+    // Candidate for @Ignore...
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+        part2(readInputFileToList("day22.txt")) shouldBe 1600
     }
 
     @Test
@@ -86,29 +50,22 @@ class Day22Test {
     }
 
     @Test
-    fun `price sequence from 123`() {
-        priceSequence()
-            .take(10)
-            .toList() shouldBe
-                listOf(
-                    3,
-                    0,
-                    6,
-                    5,
-                    4,
-                    4,
-                    6,
-                    4,
-                    4,
-                    2
-                )
-    }
-
-    @Test
     fun `price change sequence from 123`() {
-        priceChangeSequence()
-            .take(9)
-            .toList() shouldBe
+        val priceList = priceSequence(123).take(10).toList()
+        priceList shouldBe listOf(
+            3,
+            0,
+            6,
+            5,
+            4,
+            4,
+            6,
+            4,
+            4,
+            2,
+        )
+
+        priceList.differences() shouldBe
                 listOf(
                     -3,
                     6,
@@ -122,6 +79,15 @@ class Day22Test {
                 )
     }
 
+    @Test
+    fun `can find difference sequence in a longer list me do`() {
+        listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9).findIndexOf(listOf(3, 4, 5, 6)) shouldBe 6
+    }
+
+    @Test
+    fun `returns null if the sequence does not exist in the list`() {
+        listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9).findIndexOf(listOf(10, 11, 12, 13)) shouldBe null
+    }
 }
 
 val testInput =

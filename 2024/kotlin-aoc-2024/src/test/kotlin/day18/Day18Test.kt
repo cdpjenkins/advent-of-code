@@ -14,7 +14,16 @@ private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBy
     val path = Historian(Vector2D(0, 0), grid)
         .findShortestPathUsingAStar(Vector2D(grid.width - 1, grid.height - 1))
 
-    return path.size - 1
+    return path!!.size - 1
+}
+
+private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
+    val grid = input.parse(gridWidth, gridHeight, fallenBytes)
+
+    val path = Historian(Vector2D(0, 0), grid)
+        .findShortestPathUsingAStar(Vector2D(grid.width - 1, grid.height - 1))
+
+    return path!!.size - 1
 }
 
 private fun List<String>.parse(gridWidth: Int, gridHeight: Int, fallenBytes: Int): Grid {
@@ -51,7 +60,7 @@ data class Grid(
 
 data class Historian(val pos: Vector2D, val grid: Grid) {
 
-    fun findShortestPathUsingAStar(endPos: Vector2D): List<Historian> {
+    fun findShortestPathUsingAStar(endPos: Vector2D): List<Historian>? {
         fun heuristic(historian: Historian) = historian.pos.manhattanDistanceTo(endPos)
 
         val cameFrom = mutableMapOf<Historian, Historian>()
@@ -84,8 +93,8 @@ data class Historian(val pos: Vector2D, val grid: Grid) {
 
             val neighbours = current.neighbours()
             neighbours.forEach { neighbour ->
-                val tentativeGScore = gScore.getValue(current)!! + 1
-                if (tentativeGScore < gScore.getValue(neighbour)!!) {
+                val tentativeGScore = gScore.getValue(current) + 1
+                if (tentativeGScore < gScore.getValue(neighbour)) {
                     cameFrom[neighbour] = current
                     gScore[neighbour] = tentativeGScore
                     fScore[neighbour] = tentativeGScore + heuristic(neighbour)
@@ -96,7 +105,7 @@ data class Historian(val pos: Vector2D, val grid: Grid) {
             }
         }
 
-        throw IllegalStateException("Urghghghgh!")
+        return null
     }
 
     private fun neighbours() =
@@ -126,10 +135,6 @@ private fun List<String>.toVector(): Vector2D {
     return Vector2D(this[0].toInt(), this[1].toInt())
 }
 
-private fun part2(input: List<String>): Int {
-    return 123
-}
-
 class Day18Test {
     @Test
     fun `part 1 with test input`() {
@@ -144,13 +149,13 @@ class Day18Test {
     @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInput, 7, 7, 12) shouldBe -1
     }
 
     @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+        part2(readInputFileToList("day_template.txt"), 71, 71, 1024) shouldBe -1
     }
 
     @Test
@@ -160,7 +165,7 @@ class Day18Test {
         val path = Historian(Vector2D(0, 0), grid)
             .findShortestPathUsingAStar(Vector2D(grid.width - 1, grid.height - 1))
 
-        grid.asStringWith(path.map { it.pos } ) shouldBe
+        grid.asStringWith(path!!.map { it.pos } ) shouldBe
             """
                 OO.#OOO
                 .O#OO#O

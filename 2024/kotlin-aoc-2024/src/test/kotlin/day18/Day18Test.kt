@@ -11,9 +11,10 @@ import kotlin.test.Ignore
 private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
     val grid = input.parse(gridWidth, gridHeight, fallenBytes)
 
-    val historian = Vector2D(0, 0)
-    val path = grid.
-        findShortestPathUsingAStar(historian, Vector2D(grid.width - 1, grid.height - 1))
+    val path = grid.findShortestPathUsingAStar(
+        startPos = Vector2D(0, 0),
+        endPos = Vector2D(grid.width - 1, grid.height - 1)
+    )
 
     return path!!.size - 1
 }
@@ -21,22 +22,12 @@ private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBy
 private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
     val grid = input.parse(gridWidth, gridHeight, fallenBytes)
 
-    val historian = Vector2D(0, 0)
-    val path = grid.findShortestPathUsingAStar(historian, Vector2D(grid.width - 1, grid.height - 1))
+    val path = grid.findShortestPathUsingAStar(
+        startPos = Vector2D(0, 0),
+        endPos = Vector2D(grid.width - 1, grid.height - 1)
+    )
 
     return path!!.size - 1
-}
-
-private fun List<String>.parse(gridWidth: Int, gridHeight: Int, fallenBytes: Int): Grid {
-    val bytesToFall = map { it.parseCoord() }
-
-    val grid = Grid(
-        bytesToFall,
-        width = gridWidth,
-        height = gridHeight,
-        fallenBytes
-    )
-    return grid
 }
 
 data class Grid(
@@ -45,21 +36,10 @@ data class Grid(
     val height: Int,
     val fallenBytes: Int
 ) {
-    fun isCorrupted(historian: Vector2D) = historian in bytesToFall.take(fallenBytes)
-
-    fun asStringWith(path: List<Vector2D>): String {
-        return (0..<height).map { y ->
-            (0..<height).map { x ->
-                val p1 = Vector2D(x, y)
-                path.firstOrNull { it == p1 }
-                    ?.let { 'O' }
-                    ?: if (p1 in bytesToFall.take(12)) '#' else '.'
-            }.joinToString("")
-        }.joinToString("\n")
-    }
+    fun isCorrupted(pos: Vector2D) = pos in bytesToFall.take(fallenBytes)
 
     fun findShortestPathUsingAStar(startPos: Vector2D, endPos: Vector2D): List<Vector2D>? {
-        fun heuristic(historian: Vector2D) = historian.manhattanDistanceTo(endPos)
+        fun heuristic(pos: Vector2D) = pos.manhattanDistanceTo(endPos)
 
         val cameFrom = mutableMapOf<Vector2D, Vector2D>()
         val gScore = mutableMapOf<Vector2D, Int>().withDefault { Integer.MAX_VALUE }
@@ -70,12 +50,11 @@ data class Grid(
         val openSet = PriorityQueue<Vector2D>(compareBy { fScore[it] } )
         openSet.offer(startPos)
 
-        fun reconstructPath(current: Vector2D): List<Vector2D> {
-            val totalPath = mutableListOf(current)
-            var stonCurrent = current
-            while (stonCurrent in cameFrom.keys) {
-                stonCurrent = cameFrom[stonCurrent]!!
-                totalPath.add(stonCurrent)
+        fun reconstructPath(endPos: Vector2D): List<Vector2D> {
+            val totalPath = mutableListOf(endPos)
+            var current = endPos
+            while (current in cameFrom.keys) {
+                current = cameFrom[current]!!.also { totalPath.add(it) }
             }
             return totalPath.reversed()
         }
@@ -86,8 +65,6 @@ data class Grid(
             if (current == endPos) {
                 return reconstructPath(current)
             }
-
-            openSet.remove(current)
 
             val neighbours = neighbours(current)
             neighbours.forEach { neighbour ->
@@ -106,15 +83,32 @@ data class Grid(
         return null
     }
 
-    fun neighbours(historian: Vector2D) =
+    fun neighbours(pos: Vector2D) =
         listOf(
-            Vector2D(historian.x - 1, historian.y),
-            Vector2D(historian.x + 1, historian.y),
-            Vector2D(historian.x, historian.y - 1),
-            Vector2D(historian.x, historian.y + 1)
+            Vector2D(pos.x - 1, pos.y),
+            Vector2D(pos.x + 1, pos.y),
+            Vector2D(pos.x, pos.y - 1),
+            Vector2D(pos.x, pos.y + 1)
         )
             .filter { it.x in 0..<width && it.y in 0..<height }
-            .filter { !isCorrupted(historian) }
+            .filter { !isCorrupted(pos) }
+
+    fun asStringWith(path: List<Vector2D>): String {
+        return (0..<height).map { y ->
+            (0..<height).map { x ->
+                val pos = Vector2D(x, y)
+                path.firstOrNull { it == pos }
+                    ?.let { 'O' }
+                    ?: if (pos in bytesToFall.take(12)) '#' else '.'
+            }.joinToString("")
+        }.joinToString("\n")
+    }
+}
+
+private fun List<String>.parse(gridWidth: Int, gridHeight: Int, fallenBytes: Int): Grid {
+    val bytesToFall = map { it.parseCoord() }
+
+    return Grid(bytesToFall, gridWidth, gridHeight, fallenBytes)
 }
 
 val COORDS_REGEX = """^(\d+),(\d+)$""".toRegex()

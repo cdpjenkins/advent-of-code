@@ -16,26 +16,22 @@ private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBy
 }
 
 private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, initialGuess: Int): String {
-    // This is horrendously inefficient. Ideas to make it more efficient:
-    //
-    // - Binary search to find the first point where the path is blocked.
-    // - Look at the path and findt the first falling block that would block that path and then fast-forward to that
-    //   point
-    //
-    // Anyway, I'm not doing either of them right now because I have my answer and am move on. So long!
+    // Binary search would likely have been much more efficient than this approach. But this works well enough to
+    // get the answer in less than two seconds for my input on my machine.
 
     val totallyFallenGrid = input.parse(gridWidth, gridHeight, fallenBytes = input.size)
 
-    val numFallen = (initialGuess..totallyFallenGrid.bytesToFall.size).first { fallenBytes ->
-        println("fallen bytes $fallenBytes")
-        totallyFallenGrid
-            .copy(bytesToFall = totallyFallenGrid.bytesToFall.take(fallenBytes))
-            .findShortestPathUsingAStar() == null
-    }
+    var guess = initialGuess
+    do {
+        val path = totallyFallenGrid
+            .copy(bytesToFall = totallyFallenGrid.bytesToFall.take(guess))
+            .findShortestPathUsingAStar()
+        if (path != null) {
+            guess = totallyFallenGrid.bytesToFall.withIndex().first { (i, v) -> v in path }.index + 1
+        }
+    } while (path != null)
 
-    val firstPositionWithBlockedPath = totallyFallenGrid.bytesToFall[numFallen - 1]
-
-    return "${firstPositionWithBlockedPath.x},${firstPositionWithBlockedPath.y}"
+    return totallyFallenGrid.bytesToFall[guess - 1].let { "${it.x},${it.y}" }
 }
 
 data class Grid(

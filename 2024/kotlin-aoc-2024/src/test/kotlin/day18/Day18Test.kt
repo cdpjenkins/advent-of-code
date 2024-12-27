@@ -27,7 +27,7 @@ private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, initialG
             .copy(bytesToFall = totallyFallenGrid.bytesToFall.take(guess))
             .findShortestPathUsingAStar()
         if (path != null) {
-            guess = totallyFallenGrid.bytesToFall.withIndex().first { (i, v) -> v in path }.index + 1
+            guess = totallyFallenGrid.bytesToFall.withIndex().first { (_, v) -> v in path }.index + 1
         }
     } while (path != null)
 
@@ -153,7 +153,6 @@ class Day18Test {
     fun `finds shortest path using test data`() {
         val grid = testInput.parse(7, 7, 12)
 
-        val start = Vector2D(0, 0)
         val path = grid
             .findShortestPathUsingAStar()
 

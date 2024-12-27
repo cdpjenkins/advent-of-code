@@ -1,10 +1,12 @@
 package day18
 
+import day16.Reindeer
 import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import utils.RegexUtils.parseUsingRegex
 import utils.Vector2D
+import java.util.*
 import kotlin.test.Ignore
 
 private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
@@ -52,19 +54,18 @@ data class Grid(
 
 data class Historian(val pos: Vector2D, val grid: Grid) {
 
-
-
     fun findShortestPathUsingAStar(endPos: Vector2D): List<Historian> {
         fun heuristic(historian: Historian) = historian.pos.manhattanDistanceTo(endPos)
 
-        // TODO use s PriorityQueue instead of repeatedly sorting a set here
-        val openSet = mutableSetOf<Historian>()
-        openSet.add(this)
         val cameFrom = mutableMapOf<Historian, Historian>()
         val gScore = mutableMapOf<Historian, Int>().withDefault { Integer.MAX_VALUE }
         gScore[this] = 0
         val fScore = mutableMapOf<Historian, Int>().withDefault { Integer.MAX_VALUE }
         fScore[this] = heuristic(this)
+
+        // TODO use s PriorityQueue instead of repeatedly sorting a set here
+        val openSet = PriorityQueue<Historian>(compareByDescending { fScore[it] } )
+        openSet.offer(this)
 
         fun reconstructPath(current: Historian): List<Historian> {
             val totalPath = mutableListOf(current)
@@ -76,11 +77,8 @@ data class Historian(val pos: Vector2D, val grid: Grid) {
             return totalPath.reversed()
         }
 
-
         while (openSet.isNotEmpty()) {
-            val current = openSet.minByOrNull { fScore[it]!! }!!
-
-//            println(current)
+            val current = openSet.poll()
 
             if (current.pos == endPos) {
                 return reconstructPath(current)

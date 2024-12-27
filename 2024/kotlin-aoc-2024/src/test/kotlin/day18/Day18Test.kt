@@ -11,7 +11,7 @@ import kotlin.test.Ignore
 private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
     val grid = input.parse(gridWidth, gridHeight, fallenBytes)
 
-    val historian = Historian(Vector2D(0, 0), grid)
+    val historian = Historian(Vector2D(0, 0))
     val path = grid.
         findShortestPathUsingAStar(historian, Vector2D(grid.width - 1, grid.height - 1))
 
@@ -21,7 +21,7 @@ private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBy
 private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
     val grid = input.parse(gridWidth, gridHeight, fallenBytes)
 
-    val historian = Historian(Vector2D(0, 0), grid)
+    val historian = Historian(Vector2D(0, 0))
     val path = grid.findShortestPathUsingAStar(historian, Vector2D(grid.width - 1, grid.height - 1))
 
     return path!!.size - 1
@@ -115,10 +115,11 @@ data class Grid(
         )
             .filter { it.x in 0..<width && it.y in 0..<height }
             .filter { !isCorrupted(historian) }
-            .map { Historian(it, this) }
+            .map { Historian(it) }
 }
 
-data class Historian(val pos: Vector2D, val grid: Grid)
+@JvmInline
+value class Historian(val pos: Vector2D)
 
 val COORDS_REGEX = """^(\d+),(\d+)$""".toRegex()
 private fun String.parseCoord(): Vector2D = parseUsingRegex(COORDS_REGEX).toList().toVector()
@@ -156,7 +157,7 @@ class Day18Test {
     fun `finds shortest path using test data`() {
         val grid = testInput.parse(7, 7, 12)
 
-        val start = Historian(Vector2D(0, 0), grid)
+        val start = Historian(Vector2D(0, 0))
         val path = grid
             .findShortestPathUsingAStar(start, Vector2D(grid.width - 1, grid.height - 1))
 

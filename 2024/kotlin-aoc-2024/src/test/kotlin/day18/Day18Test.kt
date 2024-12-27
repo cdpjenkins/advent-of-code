@@ -63,8 +63,7 @@ data class Historian(val pos: Vector2D, val grid: Grid) {
         val fScore = mutableMapOf<Historian, Int>().withDefault { Integer.MAX_VALUE }
         fScore[this] = heuristic(this)
 
-        // TODO use s PriorityQueue instead of repeatedly sorting a set here
-        val openSet = PriorityQueue<Historian>(compareByDescending { fScore[it] } )
+        val openSet = PriorityQueue<Historian>(compareBy { fScore[it] } )
         openSet.offer(this)
 
         fun reconstructPath(current: Historian): List<Historian> {
@@ -142,7 +141,7 @@ class Day18Test {
 
     @Test
     fun `part 1 with real input`() {
-        part1(readInputFileToList("day18.txt"), 71, 71, 1024) shouldBe -1
+        part1(readInputFileToList("day18.txt"), 71, 71, 1024) shouldBe 290
     }
 
     @Ignore

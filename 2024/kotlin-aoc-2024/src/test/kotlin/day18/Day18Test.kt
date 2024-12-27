@@ -11,8 +11,9 @@ import kotlin.test.Ignore
 private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
     val grid = input.parse(gridWidth, gridHeight, fallenBytes)
 
-    val path = Historian(Vector2D(0, 0), grid)
-        .findShortestPathUsingAStar(Vector2D(grid.width - 1, grid.height - 1))
+    val historian = Historian(Vector2D(0, 0), grid)
+    val path = grid.
+        findShortestPathUsingAStar(historian, Vector2D(grid.width - 1, grid.height - 1))
 
     return path!!.size - 1
 }
@@ -20,8 +21,8 @@ private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBy
 private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
     val grid = input.parse(gridWidth, gridHeight, fallenBytes)
 
-    val path = Historian(Vector2D(0, 0), grid)
-        .findShortestPathUsingAStar(Vector2D(grid.width - 1, grid.height - 1))
+    val historian = Historian(Vector2D(0, 0), grid)
+    val path = grid.findShortestPathUsingAStar(historian, Vector2D(grid.width - 1, grid.height - 1))
 
     return path!!.size - 1
 }
@@ -44,7 +45,7 @@ data class Grid(
     val height: Int,
     val fallenBytes: Int
 ) {
-    fun isCorrupted(pos: Vector2D, historian: Historian) = historian.pos in bytesToFall.take(fallenBytes)
+    fun isCorrupted(historian: Historian) = historian.pos in bytesToFall.take(fallenBytes)
 
     fun asStringWith(path: List<Vector2D>): String {
         return (0..<height).map { y ->
@@ -56,21 +57,18 @@ data class Grid(
             }.joinToString("")
         }.joinToString("\n")
     }
-}
 
-data class Historian(val pos: Vector2D, val grid: Grid) {
-
-    fun findShortestPathUsingAStar(endPos: Vector2D): List<Historian>? {
+    fun findShortestPathUsingAStar(startPos: Historian, endPos: Vector2D): List<Historian>? {
         fun heuristic(historian: Historian) = historian.pos.manhattanDistanceTo(endPos)
 
         val cameFrom = mutableMapOf<Historian, Historian>()
         val gScore = mutableMapOf<Historian, Int>().withDefault { Integer.MAX_VALUE }
-        gScore[this] = 0
+        gScore[startPos] = 0
         val fScore = mutableMapOf<Historian, Int>().withDefault { Integer.MAX_VALUE }
-        fScore[this] = heuristic(this)
+        fScore[startPos] = heuristic(startPos)
 
         val openSet = PriorityQueue<Historian>(compareBy { fScore[it] } )
-        openSet.offer(this)
+        openSet.offer(startPos)
 
         fun reconstructPath(current: Historian): List<Historian> {
             val totalPath = mutableListOf(current)
@@ -91,7 +89,7 @@ data class Historian(val pos: Vector2D, val grid: Grid) {
 
             openSet.remove(current)
 
-            val neighbours = current.neighbours()
+            val neighbours = neighbours(current)
             neighbours.forEach { neighbour ->
                 val tentativeGScore = gScore.getValue(current) + 1
                 if (tentativeGScore < gScore.getValue(neighbour)) {
@@ -108,23 +106,19 @@ data class Historian(val pos: Vector2D, val grid: Grid) {
         return null
     }
 
-    private fun neighbours() =
-        this.pos
-            .neighbours()
-            .filter { it.x in 0..<grid.width && it.y in 0..<grid.height }
-            .filter { !grid.isCorrupted(it, this) }
-            .map { Historian(it, grid) }
-
-
+    fun neighbours(historian: Historian) =
+        listOf(
+            Vector2D(historian.pos.x - 1, historian.pos.y),
+            Vector2D(historian.pos.x + 1, historian.pos.y),
+            Vector2D(historian.pos.x, historian.pos.y - 1),
+            Vector2D(historian.pos.x, historian.pos.y + 1)
+        )
+            .filter { it.x in 0..<width && it.y in 0..<height }
+            .filter { !isCorrupted(historian) }
+            .map { Historian(it, this) }
 }
 
-private fun Vector2D.neighbours() =
-    listOf(
-        Vector2D(x - 1, y),
-        Vector2D(x + 1, y),
-        Vector2D(x, y - 1),
-        Vector2D(x, y + 1)
-    )
+data class Historian(val pos: Vector2D, val grid: Grid)
 
 val COORDS_REGEX = """^(\d+),(\d+)$""".toRegex()
 private fun String.parseCoord(): Vector2D = parseUsingRegex(COORDS_REGEX).toList().toVector()
@@ -162,8 +156,9 @@ class Day18Test {
     fun `finds shortest path using test data`() {
         val grid = testInput.parse(7, 7, 12)
 
-        val path = Historian(Vector2D(0, 0), grid)
-            .findShortestPathUsingAStar(Vector2D(grid.width - 1, grid.height - 1))
+        val start = Historian(Vector2D(0, 0), grid)
+        val path = grid
+            .findShortestPathUsingAStar(start, Vector2D(grid.width - 1, grid.height - 1))
 
         grid.asStringWith(path!!.map { it.pos } ) shouldBe
             """

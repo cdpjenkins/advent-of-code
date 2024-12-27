@@ -26,9 +26,10 @@ private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, initialG
 
     val totallyFallenGrid = input.parse(gridWidth, gridHeight, fallenBytes = input.size)
 
-    val numFallen = (initialGuess..totallyFallenGrid.fallenBytes).first { fallenBytes ->
+    val numFallen = (initialGuess..totallyFallenGrid.bytesToFall.size).first { fallenBytes ->
+        println("fallen bytes $fallenBytes")
         totallyFallenGrid
-            .copy(fallenBytes = fallenBytes)
+            .copy(bytesToFall = totallyFallenGrid.bytesToFall.take(fallenBytes))
             .findShortestPathUsingAStar() == null
     }
 
@@ -40,10 +41,9 @@ private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, initialG
 data class Grid(
     val bytesToFall: List<Vector2D>,
     val width: Int,
-    val height: Int,
-    val fallenBytes: Int
+    val height: Int
 ) {
-    fun isCorrupted(pos: Vector2D) = pos in bytesToFall.take(fallenBytes)
+    fun isCorrupted(pos: Vector2D) = pos in bytesToFall
 
     fun findShortestPathUsingAStar(): List<Vector2D>? {
         val startPos = Vector2D(0, 0)
@@ -118,7 +118,7 @@ data class Grid(
 private fun List<String>.parse(gridWidth: Int, gridHeight: Int, fallenBytes: Int): Grid {
     val bytesToFall = map { it.parseCoord() }
 
-    return Grid(bytesToFall, gridWidth, gridHeight, fallenBytes)
+    return Grid(bytesToFall.take(fallenBytes), gridWidth, gridHeight)
 }
 
 val COORDS_REGEX = """^(\d+),(\d+)$""".toRegex()
@@ -150,7 +150,7 @@ class Day18Test {
     fun `part 2 with real input`() {
         val nonCheatyInitialGuess = 1024
         val cheatyInitialGuess = 2980
-        part2(readInputFileToList("day18.txt"), 71, 71, cheatyInitialGuess) shouldBe "64,54"
+        part2(readInputFileToList("day18.txt"), 71, 71, nonCheatyInitialGuess) shouldBe "64,54"
     }
 
     @Test

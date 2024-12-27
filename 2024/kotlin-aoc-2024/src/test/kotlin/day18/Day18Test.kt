@@ -6,28 +6,35 @@ import org.junit.jupiter.api.Test
 import utils.RegexUtils.parseUsingRegex
 import utils.Vector2D
 import java.util.*
-import kotlin.test.Ignore
 
 private fun part1(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
     val grid = input.parse(gridWidth, gridHeight, fallenBytes)
 
-    val path = grid.findShortestPathUsingAStar(
-        startPos = Vector2D(0, 0),
-        endPos = Vector2D(grid.width - 1, grid.height - 1)
-    )
+    val path = grid.findShortestPathUsingAStar()
 
     return path!!.size - 1
 }
 
-private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, fallenBytes: Int): Int {
-    val grid = input.parse(gridWidth, gridHeight, fallenBytes)
+private fun part2(input: List<String>, gridWidth: Int, gridHeight: Int, initialGuess: Int): String {
+    // This is horrendously inefficient. Ideas to make it more efficient:
+    //
+    // - Binary search to find the first point where the path is blocked.
+    // - Look at the path and findt the first falling block that would block that path and then fast-forward to that
+    //   point
+    //
+    // Anyway, I'm not doing either of them right now because I have my answer and am move on. So long!
 
-    val path = grid.findShortestPathUsingAStar(
-        startPos = Vector2D(0, 0),
-        endPos = Vector2D(grid.width - 1, grid.height - 1)
-    )
+    val totallyFallenGrid = input.parse(gridWidth, gridHeight, fallenBytes = input.size)
 
-    return path!!.size - 1
+    val numFallen = (initialGuess..totallyFallenGrid.fallenBytes).first { fallenBytes ->
+        totallyFallenGrid
+            .copy(fallenBytes = fallenBytes)
+            .findShortestPathUsingAStar() == null
+    }
+
+    val firstPositionWithBlockedPath = totallyFallenGrid.bytesToFall[numFallen - 1]
+
+    return "${firstPositionWithBlockedPath.x},${firstPositionWithBlockedPath.y}"
 }
 
 data class Grid(
@@ -38,7 +45,10 @@ data class Grid(
 ) {
     fun isCorrupted(pos: Vector2D) = pos in bytesToFall.take(fallenBytes)
 
-    fun findShortestPathUsingAStar(startPos: Vector2D, endPos: Vector2D): List<Vector2D>? {
+    fun findShortestPathUsingAStar(): List<Vector2D>? {
+        val startPos = Vector2D(0, 0)
+        val endPos = Vector2D(width - 1, height - 1)
+
         fun heuristic(pos: Vector2D) = pos.manhattanDistanceTo(endPos)
 
         val cameFrom = mutableMapOf<Vector2D, Vector2D>()
@@ -131,16 +141,16 @@ class Day18Test {
         part1(readInputFileToList("day18.txt"), 71, 71, 1024) shouldBe 290
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput, 7, 7, 12) shouldBe -1
+        part2(testInput, 7, 7, 12) shouldBe "6,1"
     }
 
-    @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt"), 71, 71, 1024) shouldBe -1
+        val nonCheatyInitialGuess = 1024
+        val cheatyInitialGuess = 2980
+        part2(readInputFileToList("day18.txt"), 71, 71, cheatyInitialGuess) shouldBe "64,54"
     }
 
     @Test
@@ -149,7 +159,7 @@ class Day18Test {
 
         val start = Vector2D(0, 0)
         val path = grid
-            .findShortestPathUsingAStar(start, Vector2D(grid.width - 1, grid.height - 1))
+            .findShortestPathUsingAStar()
 
         grid.asStringWith(path!!) shouldBe
             """

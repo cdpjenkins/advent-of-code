@@ -1,6 +1,5 @@
 package day18
 
-import day16.Reindeer
 import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -25,7 +24,7 @@ private fun List<String>.parse(gridWidth: Int, gridHeight: Int, fallenBytes: Int
         bytesToFall,
         width = gridWidth,
         height = gridHeight,
-        corruptedBytesFn = { grid, historian -> bytesToFall.take(fallenBytes) }
+        fallenBytes
     )
     return grid
 }
@@ -34,11 +33,9 @@ data class Grid(
     val bytesToFall: List<Vector2D>,
     val width: Int,
     val height: Int,
-    val corruptedBytesFn: (Grid, Historian) -> List<Vector2D>
+    val fallenBytes: Int
 ) {
-    fun isCorrupted(pos: Vector2D, historian: Historian): Boolean {
-        return historian.pos in corruptedBytesFn(this, historian)
-    }
+    fun isCorrupted(pos: Vector2D, historian: Historian) = historian.pos in bytesToFall.take(fallenBytes)
 
     fun asStringWith(path: List<Vector2D>): String {
         return (0..<height).map { y ->

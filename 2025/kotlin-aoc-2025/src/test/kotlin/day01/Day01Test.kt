@@ -6,34 +6,28 @@ import org.junit.jupiter.api.Test
 import utils.RegexUtils.parseUsingRegex
 import kotlin.math.abs
 
-private fun part1(input: List<String>): Int {
-    val locations =
-        input.parseRotationInstructions()
-            .runningFold(50) { acc, move -> acc + move }
+private fun part1(input: List<String>) =
+    input.parseToRotationInstructions()
+        .runningFold(50) { acc, move -> acc + move }
+        .count { it.isAtZero() }
 
-    return locations.count { it.mod(100) == 0 }
-}
+private fun part2(input: List<String>) =
+    input.parseToRotationInstructions()
+        .flatMap { it.toListOfSingleRotationsOneAtATime() }
+        .runningFold(50) { acc, move -> acc + move }
+        .count { it.isAtZero() }
 
-private fun part2(input: List<String>): Int {
-    val locations =
-        input.parseRotationInstructions()
-            .flatMap { it.toListOfSingleRotationsOneAtATime() }
-            .runningFold(50) { acc, move -> acc + move }
+private fun Int.isAtZero(): Boolean = this.mod(100) == 0
 
-    return locations.count { it % 100 == 0 }
-}
-
-private fun Int.toListOfSingleRotationsOneAtATime(): List<Int> {
-    return if (this < 0) {
-        List(abs(this)) { -1 }
-    } else {
-        List(this) { 1 }
+private fun Int.toListOfSingleRotationsOneAtATime(): List<Int> =
+    when {
+        this < 0 -> List(abs(this)) { -1 }
+        else -> List(this) { 1 }
     }
-}
 
-private fun List<String>.parseRotationInstructions(): List<Int> = map { it.toRotationInstruction() }
+private fun List<String>.parseToRotationInstructions(): List<Int> = map { it.parseToRotationInstruction() }
 
-private fun String.toRotationInstruction(): Int {
+private fun String.parseToRotationInstruction(): Int {
     val (direction, distanceString) = parseUsingRegex("""([LR])(\d+)""")
     val distance = distanceString.toInt()
 

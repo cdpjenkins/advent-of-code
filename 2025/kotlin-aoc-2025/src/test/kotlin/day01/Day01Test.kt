@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import utils.RegexUtils.parseUsingRegex
 import kotlin.math.abs
 
+
 private fun part1(input: List<String>) =
     input.parseToRotationInstructions()
         .runningFold(50) { acc, move -> acc + move }

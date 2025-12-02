@@ -7,16 +7,23 @@ import utils.RegexUtils.parseUsingRegex
 
 private fun part1(input: String): Long =
     parseRanges(input)
-        .flatMap { it.filter { it.containsSameSequenceOfDigitsRepeatingTwice() } }
+        .flatMap { it.filter { it.toString().consistsOfSameDigitSequenceRepeatNTimes(2) } }
         .sum()
 
-private fun parseRanges(input: String): List<LongRange> = input.split(",").map { it.parseRange() }
+private fun part2(input: String) =
+    parseRanges(input)
+        .flatMap { it.filter { it.toString().consistsOfSameDigitSequenceRepeated() } }
+        .sum()
 
-private fun Long.containsSameSequenceOfDigitsRepeatingTwice(): Boolean {
-    val stringRepresentation = this.toString()
-    val len = stringRepresentation.length
-    return (len % 2 == 0) && stringRepresentation.substring(0, len / 2) == stringRepresentation.substring(len / 2, len)
-}
+private fun String.consistsOfSameDigitSequenceRepeatNTimes(n: Int) =
+    (length % n == 0) && this.substring(0, length / n).repeat(n) == this
+
+private fun String.consistsOfSameDigitSequenceRepeated() =
+    (2..length).any {
+        consistsOfSameDigitSequenceRepeatNTimes(it)
+    }
+
+private fun parseRanges(input: String): List<LongRange> = input.split(",").map { it.parseRange() }
 
 private fun String.parseRange(): LongRange {
     val (start, end) = this.parseUsingRegex("""(\d+)-(\d+)""")
@@ -24,9 +31,6 @@ private fun String.parseRange(): LongRange {
     return start.toLong()..end.toLong()
 }
 
-private fun part2(input: List<String>): Long {
-    return 123
-}
 
 class Day02Test {
 
@@ -39,18 +43,16 @@ class Day02Test {
     fun `part 1 with real input`() {
         part1(readInputFileToString("day02.txt")) shouldBe 19219508902L
     }
-//
-//    @Ignore
-//    @Test
-//    fun `part 2 with test input`() {
-//        part2(testInput) shouldBe -1
-//    }
-//
-//    @Ignore
-//    @Test
-//    fun `part 2 with real input`() {
-//        part2(readInputFileToList("day_template.txt")) shouldBe -1
-//    }
+
+    @Test
+    fun `part 2 with test input`() {
+        part2(testInput) shouldBe 4174379265L
+    }
+
+    @Test
+    fun `part 2 with real input`() {
+        part2(readInputFileToString("day02.txt")) shouldBe 27180728081L
+    }
 }
 
 val testInput =

@@ -3,39 +3,28 @@ package day03
 import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import kotlin.collections.sumOf
 
-private fun part1(input: List<String>): Int {
+private fun part1(input: List<String>): Long =
+    input.map { it.maxJoltageOfLength(2) }
+        .sumOf { it.toLong() }
 
-    val joltages = input.map { line ->
-        val indexedLine = line.withIndex().toList()
-        val allButLast = indexedLine.dropLast(1)
-        val (maxIndex, firstDigit) = allButLast.maxBy { (_, c) -> c }
+private fun part2(input: List<String>): Long =
+    input.map { it.maxJoltageOfLength(12) }
+        .sumOf { it.toLong() }
 
-        val (_, secondDigit) = indexedLine.drop(maxIndex + 1).maxBy { (_, c) -> c }
+private fun String.maxJoltageOfLength(n: Int): String {
+    return when (n) {
+        0 -> ""
+        else -> {
+            val substringToSearch = withIndex().toList().dropLast(n - 1)
+            val (foundIndex, maxDigit) = substringToSearch.maxBy { (_, c) -> c }
 
-        "${firstDigit}${secondDigit}".toInt()
+            "${maxDigit}" + this.drop(foundIndex + 1).maxJoltageOfLength(n-1)
+        }
     }
-
-    return joltages.sum()
-}
-
-private fun part2(input: List<String>): Long {
-    val joltages = input.map { line ->
-        sequence {
-            var remainingChars = line
-
-            for (n in 12 downTo 1) {
-                val indexedChars = remainingChars.withIndex().toList()
-                val allButLast = indexedChars.dropLast(n - 1)
-                val (maxIndex, firstDigit) = allButLast.maxBy { (_, c) -> c }
-                remainingChars = remainingChars.drop(maxIndex + 1)
-
-                yield(firstDigit)
-            }
-        }.joinToString("").toLong()
-    }
-
-    return joltages.sum()
 }
 
 class Day03Test {
@@ -58,6 +47,42 @@ class Day03Test {
     @Test
     fun `part 2 with real input`() {
         part2(readInputFileToList("day03.txt")) shouldBe 176582889354075
+    }
+
+    @Test
+    fun `max joltage string of size 0 is empty string`() {
+        "1234".maxJoltageOfLength(0) shouldBe ""
+    }
+
+    @Test
+    fun `max joltage of length 1 in string of length 1 should be formed by the single digit in that string`() {
+        "5".maxJoltageOfLength(1) shouldBe "5"
+    }
+
+    @Test
+    fun `max joltage of length 1 in a string with multiple chars should be formed by the largest digit in that string`() {
+        "13579864".maxJoltageOfLength(1) shouldBe "9"
+    }
+
+    @Test
+    fun `max joltage of length 2 in a string with 2 digits should be formed by those two digits`() {
+        "56".maxJoltageOfLength(2) shouldBe "56"
+    }
+
+    @Test
+    fun `max joltage of length 2 from a string with 3 digits should be formed by finding the largest possible joltage`() {
+        "123".maxJoltageOfLength(2) shouldBe "23"
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "987654321111111, 987654321111",
+        "811111111111119 ,811111111119",
+        "234234234234278 ,434234234278",
+        "818181911112111, 888911112111"
+    )
+    fun `max joltage for sample values should be correct`(battery: String, expectedMaxJoltage: String) {
+        battery.maxJoltageOfLength(12) shouldBe expectedMaxJoltage
     }
 }
 

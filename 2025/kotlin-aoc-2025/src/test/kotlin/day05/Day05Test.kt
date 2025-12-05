@@ -43,7 +43,7 @@ private fun mergedRanges(freshIngredientRanges: List<LongRange>): MutableList<Lo
     return mergedRanges
 }
 
-private fun LongRange.canMergeInto(lastRange: LongRange?): Boolean = lastRange == null || first in lastRange
+private fun LongRange.canMergeInto(lastRange: LongRange): Boolean = this.first in lastRange
 private fun LongRange.mergeWith(that: LongRange): LongRange {
     return min(this.first, that.first)..max(this.last, that.last)
 }

@@ -4,7 +4,6 @@ import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import utils.ListUtils.splitByBlank
-import kotlin.test.Ignore
 
 private fun part1(input: List<String>): Long {
     val mat = input.map { it.trim().split(" +".toRegex()) }
@@ -16,7 +15,6 @@ private fun part2(input: List<String>): Long {
 
     val tr = input.transposeStringList()
 
-    println(tr)
 
     val expressionsStrings = tr.map { it.trim() }.splitByBlank()
     val ston = expressionsStrings.map {
@@ -29,9 +27,6 @@ private fun part2(input: List<String>): Long {
 
         evaluate("$operator", longs)
     }
-
-
-    println(ston)
 
     return ston.sum()
 
@@ -101,7 +96,7 @@ class Day06Test {
 
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day06.txt")) shouldBe -1
+        part2(readInputFileToList("day06.txt")) shouldBe 9695042567249L
     }
 }
 

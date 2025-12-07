@@ -5,59 +5,48 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 private fun part1(input: List<String>): Int {
-    val (startX, _) = input.first().withIndex().find { (_, c) -> c == 'S' }!!
 
-    var xs = setOf(startX)
+    var beams = setOf(input.beamStart())
     var splits = 0
-    for (y in 1..<input.size) {
-        val thisLine = input[y]
+    input.drop(1).forEach { line ->
+        val splitters = line.splitters()
 
-        val splitterXs = thisLine.withIndex().filter { (_, c) -> c == '^' }.map { it.index }.toSet()
-
-        val newXs = xs.flatMap {
-            if (it in splitterXs) {
+        val newXs = beams.flatMap {
+            if (it in splitters) {
                 splits++
                 setOf(it - 1, it + 1)
             } else {
                 setOf(it)
             }
         }
-        xs = newXs.toSet()
+        beams = newXs.toSet()
     }
 
     return splits
 }
 
 private fun part2(input: List<String>): Long {
-    val (startX, _) = input.first().withIndex().find { (_, c) -> c == 'S' }!!
+    val xs = mapOf(input.beamStart() to 1L)
 
-    var xs = mapOf(startX to 1L)
-    for (y in 1..<input.size) {
-        val thisLine = input[y]
-
-        val splitterXs = thisLine.withIndex().filter { (_, c) -> c == '^' }.map { it.index }
-
-        val newXs = xs.flatMap { (x, n) ->
-            if (x in splitterXs) {
-                listOf((x - 1) to n, (x + 1) to n)
-            } else {
-                listOf(x to n)
-            }
+    val finalBeamSuperpositions =
+        input.drop(1).fold(xs) { beamSuperpositions, inputLine ->
+            beamSuperpositions.flatMap { (x, n) ->
+                when (x) {
+                    in inputLine.splitters() -> listOf((x - 1) to n, (x + 1) to n)
+                    else -> listOf(x to n)
+                }
+            }.combineBeamMaps()
         }
 
-        xs = combineBeamMaps(newXs)
-    }
-
-    return xs.values.sum()
+    return finalBeamSuperpositions.values.sum()
 }
 
-private fun combineBeamMaps(newXs: List<Pair<Int, Long>>): MutableMap<Int, Long> {
-    val combined: MutableMap<Int, Long> = mutableMapOf()
-    newXs.forEach { (x, n) ->
-        combined[x] = combined.getOrDefault(x, 0) + n
-    }
-    return combined
-}
+private fun List<String>.beamStart() = this.first().withIndex().find { (_, c) -> c == 'S' }!!.index
+private fun String.splitters() = withIndex().filter { (_, c) -> c == '^' }.map { it.index }.toSet()
+
+private fun List<Pair<Int, Long>>.combineBeamMaps() =
+    groupBy({ it.first }, { it.second })
+        .mapValues { it.value.sum() }
 
 class Day07Test {
 

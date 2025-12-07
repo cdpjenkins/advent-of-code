@@ -8,7 +8,7 @@ private fun part1(input: List<String>): Int {
 
     var beams = setOf(input.beamStart())
     var splits = 0
-    input.drop(1).forEach { line ->
+    input.forEach { line ->
         val splitters = line.splitters()
 
         val newXs = beams.flatMap {
@@ -26,13 +26,12 @@ private fun part1(input: List<String>): Int {
 }
 
 private fun part2(input: List<String>): Long {
-    val xs = mapOf(input.beamStart() to 1L)
-
     val finalBeamSuperpositions =
-        input.drop(1).fold(xs) { beamSuperpositions, inputLine ->
+        input.fold(mapOf(input.beamStart() to 1L)) { beamSuperpositions, inputLine ->
+            val splitters = inputLine.splitters()
             beamSuperpositions.flatMap { (x, n) ->
                 when (x) {
-                    in inputLine.splitters() -> listOf((x - 1) to n, (x + 1) to n)
+                    in splitters -> listOf((x - 1) to n, (x + 1) to n)
                     else -> listOf(x to n)
                 }
             }.combineBeamMaps()
@@ -49,7 +48,6 @@ private fun List<Pair<Int, Long>>.combineBeamMaps() =
         .mapValues { it.value.sum() }
 
 class Day07Test {
-
     @Test
     fun `part 1 with test input`() {
         part1(testInput) shouldBe 21

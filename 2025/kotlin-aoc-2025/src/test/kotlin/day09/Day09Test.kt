@@ -13,124 +13,116 @@ import java.awt.Graphics2D
 import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import kotlin.math.max
+import kotlin.math.min
 
 private fun part1(input: List<String>): Long {
-
     val points = input.map { it.toPoint() }
+    val pairs = points.pairs()
 
-    val pairs = (0..<points.size).flatMap { i ->
-        ((i + 1)..<points.size).map { j ->
-            points[i] to points[j]
+    return pairs.maxOf { (p1, p2) -> Rectangle.of(p1, p2).area }
+}
+
+private fun part2(input: List<String>): Long {
+    val points = input.map { it.toPoint() }
+    val pairs = points.pairs()
+    val edges = (points + points.first()).zipWithNext().map { (p1, p2) -> Edge.of(p1, p2) }
+
+    val rectangles = pairs.map { (p1, p2) -> Rectangle.of(p1, p2) }
+    val possibleRectangles = rectangles.filter { it.isPossibleWithin(edges) }
+
+    return possibleRectangles.maxOf { it.area }
+}
+
+private fun List<Vector2D>.pairs(): List<Pair<Vector2D, Vector2D>> =
+    (0..<size).flatMap { i ->
+        ((i + 1)..<size).map { j ->
+            this[i] to this[j]
         }
     }
 
-    val areas = pairs.map { (p1, p2) ->
-        rectangeAreaBetween(p1, p2)
-    }
-
-    val maxArea = areas.max()
-
-    return maxArea
-}
-
-private fun part2(input: List<String>): Int {
-    val points = input.map { it.toPoint() }
-
-    val pairs = (0..<points.size).flatMap { i ->
-        ((i + 1)..<points.size).map { j ->
-            points[i] to points[j]
-        }
-    }
-
-    val edges = (points + points.first()).zipWithNext().map { (p1, p2) -> Edge(p1, p2) }
-
-    val upEdges = edges.filter { it.direction == UP }.sortedBy { it.p1.x }
-    val rightEdges = edges.filter { it.direction == RIGHT }.sortedBy { it.p1.y }
-    val downEdges = edges.filter { it.direction == DOWN }.sortedBy { it.p1.x }
-    val leftEdges = edges.filter { it.direction == LEFT }.sortedBy { it.p1.y }
-
-    val perimeter = Perimeter(upEdges, rightEdges, downEdges, leftEdges)
-
-
-    perimeter.contains(Vector2D(5, 4))
-
-//    val viableSquares = pairs.filter { (p1, p2) ->
-//
-//    }
-
-//    println(viableSquares)
-//    viableSquares.forEach { println(it) }
-//
-//
-//
-//    val thang = viableSquares.maxBy { (p1, p2) -> rectangeAreaBetween(p1, p2) }
-//    println("thang")
-//    println(thang)
-
-    return -12
-}
-
-class Perimeter(
-    val upEdges: List<Edge>,
-    val rightEdges: List<Edge>,
-    val downEdges: List<Edge>,
-    val leftEdges: List<Edge>
+data class Rectangle(
+    val leftX: Int,
+    val topY: Int,
+    val rightX: Int,
+    val bottomY: Int
 ) {
-    fun contains(p: Vector2D) {
-        upEdges.takeWhile { it.p1.x <= p.x }
-        downEdges.takeWhile { it.p1.x <= p.x }
+    val topEdge: Edge by lazy { Edge(Vector2D(leftX, topY), Vector2D(rightX, topY), HORIZONTAL) }
+    val bottomEdge: Edge by lazy { Edge(Vector2D(leftX, bottomY), Vector2D(rightX, bottomY), HORIZONTAL) }
+    val rightEdge: Edge by lazy { Edge(Vector2D(rightX, topY), Vector2D(rightX, bottomY), VERTICAL) }
+    val leftEdge: Edge by lazy { Edge(Vector2D(leftX, topY), Vector2D(leftX, bottomY), VERTICAL) }
 
+    val area: Long by lazy { (rightX.toLong() - leftX + 1) * (bottomY - topY + 1)  }
 
-        leftEdges.takeWhile { it.p1.y <= p.y }
-        rightEdges.takeWhile { it.p1.x <= p.y }
-
-
+    fun isPossibleWithin(edges: List<Edge>): Boolean {
+        return !edges.any { this@Rectangle.intersectedBy(Edge.of(it.p1, it.p2)) }
     }
-}
-
-enum class Direction {
-    UP, RIGHT, DOWN, LEFT;
 
     companion object {
-        fun of(p1: Vector2D, p2: Vector2D): Direction {
-            return when {
-                p1.x == p2.x -> {
-                    when {
-                        p2.y > p1.y -> DOWN
-                        p1.y > p2.y -> UP
-                        else -> throw IllegalArgumentException("oh noes: $p1, $p2")
-                    }
-                }
-                p1.y == p2.y -> {
-                    when {
-                        p1.x > p2.x -> LEFT
-                        else -> RIGHT
-                    }
-                }
-                else -> {
-                    throw IllegalArgumentException("strewth")
-                }
-            }
-        }
+        fun of(start: Vector2D, end: Vector2D): Rectangle =
+            Rectangle(
+                min(start.x, end.x),
+                min(start.y, end.y),
+                max(start.x, end.x),
+                max(start.y, end.y)
+            )
     }
 }
 
-data class Edge(val p1: Vector2D, val p2: Vector2D) {
-    val direction = Direction.of(p1, p2)
+private fun Rectangle.intersectedBy(edge: Edge) =
+    when (edge.direction) {
+        VERTICAL -> {
+            edge.intersects(topEdge) || edge.intersects(bottomEdge) ||
+                    (edge.p1.x in inclusiveRange(leftX, rightX) &&
+                            edge.p1.y in exclusiveRange(topY, bottomY) &&
+                            edge.p2.y in exclusiveRange(topY, bottomY)
+                            )
+        }
 
-    fun coversPointY(p: Vector2D) {
-        when (direction) {
-            UP -> p.y in p2.y..p1.y
-            DOWN ->  p.y in p1.y..p2.y
-            else -> throw IllegalArgumentException("oh no: $direction")
+        HORIZONTAL -> {
+            edge.intersects(leftEdge) || edge.intersects(rightEdge) ||
+                    (edge.p1.y in inclusiveRange(topY, bottomY) &&
+                            edge.p1.x in exclusiveRange(leftX, rightX) &&
+                            edge.p2.x in exclusiveRange(leftX, rightX)
+                            )
         }
     }
 
-    fun coversPointX(p: Vector2D) {
-        when (direction) {
-            LEFT -> p.x in p2.x..p1.x
-            RIGHT ->  p.x in p1.x..p2.x
-            else -> throw IllegalArgumentException("oh no: $direction")
+private fun exclusiveRange(x1: Int, x2: Int) = min(x1, x2)..max(x1, x2)
+fun inclusiveRange(x1: Int, x2: Int) = (min(x1, x2)+1)..<max(x1, x2)
+
+
+enum class Direction {
+    VERTICAL, HORIZONTAL;
+
+    companion object {
+        fun of(p1: Vector2D, p2: Vector2D) =
+            when {
+                p1.x == p2.x -> VERTICAL
+                p1.y == p2.y -> HORIZONTAL
+                else -> throw IllegalArgumentException("strewth: $p1, $p2")
+            }
+    }
+}
+
+data class Edge(val p1: Vector2D, val p2: Vector2D, val direction: Direction) {
+    fun intersects(that: Edge) =
+        when (this.direction) {
+            VERTICAL if that.direction == HORIZONTAL -> {
+                this.p1.x in inclusiveRange(that.p1.x, that.p2.x) && that.p1.y in inclusiveRange(this.p1.y, this.p2.y)
+            }
+            HORIZONTAL if that.direction == VERTICAL -> {
+                this.p1.y in inclusiveRange(that.p1.y, that.p2.y) && that.p1.x in inclusiveRange(this.p1.x, this.p2.x)
+            }
+            else -> {
+                throw IllegalArgumentException("$this, $that")
+            }
+        }
+
+    companion object {
+        fun of(p1: Vector2D, p2: Vector2D): Edge {
+            val direction = Direction.of(p1, p2)
+            return Edge(p1, p2, direction)
         }
     }
 }
@@ -141,13 +133,9 @@ private fun String.toPoint(): Vector2D {
     return Vector2D(x, y)
 }
 
-fun rectangeAreaBetween(v1: Vector2D, v2: utils.Vector2D): Long {
-    return (Math.abs(v1.x.toLong() - v2.x.toLong()) + 1) * (Math.abs(v1.y.toLong() - v2.y.toLong()) + 1)
-}
-
-class EdgeVisualizerPanel(
-    private val edges: List<Edge>,
-    private val points: List<Vector2D>,
+class EdgeVisualiserPanel(
+    val edges: List<Edge>,
+    val points: List<Vector2D>,
     val scale: Double = 40.0
 ) : JPanel() {
     private val offset = 50
@@ -170,10 +158,8 @@ class EdgeVisualizerPanel(
 
         edges.forEach { edge ->
             val color = when (edge.direction) {
-                UP -> Color.BLUE
-                RIGHT -> Color.GREEN
-                DOWN -> Color.RED
-                LEFT -> Color.ORANGE
+                VERTICAL -> Color.BLUE
+                HORIZONTAL -> Color.RED
             }
             g2d.color = color
             g2d.drawLine(
@@ -196,11 +182,11 @@ class EdgeVisualizerPanel(
     }
 }
 
-fun visualizeEdges(input: List<String>, scale: Double) {
+fun visualiseEdges(input: List<String>, scale: Double) {
     val points = input.map { it.toPoint() }
-    val edges = (points + points.first()).zipWithNext().map { (p1, p2) -> Edge(p1, p2) }
+    val edges = (points + points.first()).zipWithNext().map { (p1, p2) -> Edge.of(p1, p2) }
 
-    val panel = EdgeVisualizerPanel(edges, points, scale)
+    val panel = EdgeVisualiserPanel(edges, points, scale)
     val scrollPane = JScrollPane(panel)
 
     val frame = JFrame("Edge Visualization")
@@ -210,12 +196,7 @@ fun visualizeEdges(input: List<String>, scale: Double) {
     frame.isVisible = true
 }
 
-private fun Vector2D.scaleBy(scale: Int): Vector2D {
-    return Vector2D(x / scale, y / scale)
-}
-
 class Day09Test {
-
     @Test
     fun `part 1 with test input`() {
         part1(testInput) shouldBe 50
@@ -226,30 +207,28 @@ class Day09Test {
         part1(readInputFileToList("day09.txt")) shouldBe 4763040296L
     }
 
-    @Ignore
     @Test
     fun `part 2 with test input`() {
-        part2(testInput) shouldBe -1
+        part2(testInput) shouldBe 24L
     }
 
-    @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day_template.txt")) shouldBe -1
+        part2(readInputFileToList("day09.txt")) shouldBe 1396494456L
     }
 
     @Ignore
     @Test
-    fun `visualize edges with test input`() {
-        visualizeEdges(testInput, scale = 40.0)
+    fun `visualise edges with test input`() {
+        visualiseEdges(testInput, scale = 40.0)
         Thread.sleep(10000)
     }
 
     @Ignore
     @Test
-    fun `visualize edges with real input`() {
-        visualizeEdges(readInputFileToList("day09.txt"), scale = 1.0/50)
-        Thread.sleep(10000)
+    fun `visualise edges with real input`() {
+        visualiseEdges(readInputFileToList("day09.txt"), scale = 1.0/25)
+        Thread.sleep(100000)
     }
 }
 

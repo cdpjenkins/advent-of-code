@@ -28,10 +28,10 @@ private fun part2(input: List<String>): Long {
     val pairs = points.pairs()
     val edges = (points + points.first()).zipWithNext().map { (p1, p2) -> Edge.of(p1, p2) }
 
-    val rectangles = pairs.map { (p1, p2) -> Rectangle.of(p1, p2) }
-    val possibleRectangles = rectangles.filter { it.isPossibleWithin(edges) }
+    val allRectangles = pairs.map { (p1, p2) -> Rectangle.of(p1, p2) }
+    val validRectangles = allRectangles.filter { it.isPossibleWithin(edges) }
 
-    return possibleRectangles.maxOf { it.area }
+    return validRectangles.maxOf { it.area }
 }
 
 private fun List<Vector2D>.pairs(): List<Pair<Vector2D, Vector2D>> =
@@ -75,22 +75,19 @@ private fun Rectangle.intersectedBy(edge: Edge) =
             edge.intersects(topEdge) || edge.intersects(bottomEdge) ||
                     (edge.p1.x in inclusiveRange(leftX, rightX) &&
                             edge.p1.y in exclusiveRange(topY, bottomY) &&
-                            edge.p2.y in exclusiveRange(topY, bottomY)
-                            )
+                            edge.p2.y in exclusiveRange(topY, bottomY))
         }
 
         HORIZONTAL -> {
             edge.intersects(leftEdge) || edge.intersects(rightEdge) ||
                     (edge.p1.y in inclusiveRange(topY, bottomY) &&
                             edge.p1.x in exclusiveRange(leftX, rightX) &&
-                            edge.p2.x in exclusiveRange(leftX, rightX)
-                            )
+                            edge.p2.x in exclusiveRange(leftX, rightX))
         }
     }
 
-private fun exclusiveRange(x1: Int, x2: Int) = min(x1, x2)..max(x1, x2)
+fun exclusiveRange(x1: Int, x2: Int) = min(x1, x2)..max(x1, x2)
 fun inclusiveRange(x1: Int, x2: Int) = (min(x1, x2)+1)..<max(x1, x2)
-
 
 enum class Direction {
     VERTICAL, HORIZONTAL;

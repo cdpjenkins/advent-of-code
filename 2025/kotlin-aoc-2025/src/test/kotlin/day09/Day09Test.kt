@@ -1,17 +1,18 @@
 package day09
 
-import day09.Direction.DOWN
-import day09.Direction.UP
+import day09.Direction.*
 import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import utils.Vector2D
 import kotlin.test.Ignore
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import javax.swing.JFrame
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 
 private fun part1(input: List<String>): Long {
 
@@ -43,10 +44,10 @@ private fun part2(input: List<String>): Int {
 
     val edges = (points + points.first()).zipWithNext().map { (p1, p2) -> Edge(p1, p2) }
 
-    val upEdges = edges.filter { it.direction == Direction.UP }.sortedBy { it.p1.x }
-    val rightEdges = edges.filter { it.direction == Direction.RIGHT }.sortedBy { it.p1.y }
-    val downEdges = edges.filter { it.direction == Direction.DOWN }.sortedBy { it.p1.x }
-    val leftEdges = edges.filter { it.direction == Direction.LEFT }.sortedBy { it.p1.y }
+    val upEdges = edges.filter { it.direction == UP }.sortedBy { it.p1.x }
+    val rightEdges = edges.filter { it.direction == RIGHT }.sortedBy { it.p1.y }
+    val downEdges = edges.filter { it.direction == DOWN }.sortedBy { it.p1.x }
+    val leftEdges = edges.filter { it.direction == LEFT }.sortedBy { it.p1.y }
 
     val perimeter = Perimeter(upEdges, rightEdges, downEdges, leftEdges)
 
@@ -127,8 +128,8 @@ data class Edge(val p1: Vector2D, val p2: Vector2D) {
 
     fun coversPointX(p: Vector2D) {
         when (direction) {
-            Direction.LEFT -> p.x in p2.x..p1.x
-            Direction.RIGHT ->  p.x in p1.x..p2.x
+            LEFT -> p.x in p2.x..p1.x
+            RIGHT ->  p.x in p1.x..p2.x
             else -> throw IllegalArgumentException("oh no: $direction")
         }
     }
@@ -151,16 +152,28 @@ class EdgeVisualizerPanel(
 ) : JPanel() {
     private val offset = 50
 
+    init {
+        val maxX = points.maxOf { it.x }
+        val maxY = points.maxOf { it.y }
+        val minX = points.minOf { it.x }
+        val minY = points.minOf { it.y }
+
+        val width = ((maxX - minX) * scale + offset * 2).toInt()
+        val height = ((maxY - minY) * scale + offset * 2).toInt()
+
+        preferredSize = Dimension(width, height)
+    }
+
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         val g2d = g as Graphics2D
 
         edges.forEach { edge ->
             val color = when (edge.direction) {
-                Direction.UP -> Color.BLUE
-                Direction.RIGHT -> Color.GREEN
-                Direction.DOWN -> Color.RED
-                Direction.LEFT -> Color.ORANGE
+                UP -> Color.BLUE
+                RIGHT -> Color.GREEN
+                DOWN -> Color.RED
+                LEFT -> Color.ORANGE
             }
             g2d.color = color
             g2d.drawLine(
@@ -187,9 +200,12 @@ fun visualizeEdges(input: List<String>, scale: Double) {
     val points = input.map { it.toPoint() }
     val edges = (points + points.first()).zipWithNext().map { (p1, p2) -> Edge(p1, p2) }
 
+    val panel = EdgeVisualizerPanel(edges, points, scale)
+    val scrollPane = JScrollPane(panel)
+
     val frame = JFrame("Edge Visualization")
     frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-    frame.add(EdgeVisualizerPanel(edges, points, scale))
+    frame.add(scrollPane)
     frame.setSize(800, 800)
     frame.isVisible = true
 }
@@ -232,7 +248,7 @@ class Day09Test {
     @Ignore
     @Test
     fun `visualize edges with real input`() {
-        visualizeEdges(readInputFileToList("day09.txt"), scale = 1.0/70)
+        visualizeEdges(readInputFileToList("day09.txt"), scale = 1.0/50)
         Thread.sleep(10000)
     }
 }

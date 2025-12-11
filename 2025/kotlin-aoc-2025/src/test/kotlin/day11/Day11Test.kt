@@ -7,49 +7,40 @@ import utils.RegexUtils.parseUsingRegex
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.test.Ignore
-import kotlin.test.fail
 
-private fun part1(input: List<String>): Int {
-
+private fun part1(input: List<String>): Long {
     val graph = input.toGraph()
 
-    return countPaths(graph, "you", "out")
+    return graph.countPathsMemoised("you", "out")
 }
 
-private fun countPaths(graph: Map<String, List<String>>, startNode: String, endNode: String): Int {
-    var paths = listOf(listOf(startNode))
-    var completedPaths = emptyList<List<String>>()
-    while (paths.isNotEmpty()) {
-        val newPaths = paths.flatMap { path ->
-            val lastElement = path.last()
-            println(lastElement)
-            val candidates = graph[lastElement] ?: emptyList()
-            candidates.map { path + it }
-        }
-        val newCompletedPaths = newPaths.filter { it.last() == endNode }
-        val newActivePaths = newPaths.filter { it.last() != endNode }
-
-        completedPaths += newCompletedPaths
-        paths = newActivePaths
-    }
-    return completedPaths.size
-}
-
-private fun part2(input: List<String>): Int {
-
+private fun part2(input: List<String>): Long {
     val graph = input.toGraph()
 
-    val tofft = countPaths(graph, "svr", "fft")
-    val todac = countPaths(graph, "fft", "dac")
-    val toout = countPaths(graph, "dac", "out")
-
-    println(tofft)
-    println(todac)
-    println(toout)
-
-
+    val tofft = graph.countPathsMemoised("svr", "fft")
+    val todac = graph.countPathsMemoised("fft", "dac")
+    val toout = graph.countPathsMemoised("dac", "out")
 
     return tofft * todac * toout
+}
+
+fun Map<String, List<String>>.countPathsMemoised(
+    source: String,
+    dest: String
+): Long {
+    val cache = mutableMapOf<String, Long>()
+
+    fun dfs(thisNode: String): Long =
+        if (thisNode == dest) {
+            1
+        } else if (cache.contains(thisNode)) {
+            cache[thisNode]!!
+        } else {
+            (this[thisNode]?.sumOf { dfs(it) } ?: 0)
+                .also { cache[thisNode] = it }
+        }
+
+    return dfs(source)
 }
 
 private fun List<String>.toGraph(): Map<String, List<String>> {
@@ -70,14 +61,11 @@ fun printGraphViz(graph: Map<String, List<String>>) {
 }
 
 private fun Map.Entry<String, List<String>>.printGraphViz() {
-
     val (node, outputs) = this
     outputs.forEach { output ->
         println("  $node -> $output")
     }
 }
-
-
 
 class Day11Test {
 
@@ -96,22 +84,17 @@ class Day11Test {
         part2(part2TestInput) shouldBe 2
     }
 
-    @Ignore // currently goes forever ...
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day11.txt")) shouldBe -1
+        part2(readInputFileToList("day11.txt")) shouldBe 293263494406608L
     }
 
     @Ignore
     @Test
     fun `part 2 graphviz`() {
-        val input = readInputFileToList("day11.txt")
-
-        val graph = input.toGraph()
+        val graph = readInputFileToList("day11.txt").toGraph()
 
         printGraphViz(graph)
-
-        fail()
     }
 }
 

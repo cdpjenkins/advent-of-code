@@ -11,12 +11,11 @@ repositories {
 }
 
 dependencies {
+    implementation("tools.aqua:z3-turnkey:4.14.1")
+
     testImplementation(kotlin("test"))
-
     testImplementation("io.kotest:kotest-assertions-core:5.5.4")
-
     testImplementation("org.junit.jupiter:junit-jupiter-params")
-
 }
 
 tasks.test {

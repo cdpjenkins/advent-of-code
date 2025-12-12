@@ -1,20 +1,20 @@
 package day10
 
+import com.microsoft.z3.Context
+import com.microsoft.z3.IntExpr
+import com.microsoft.z3.Status
 import utils.FileUtil.readInputFileToList
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import utils.RegexUtils.parseUsingRegex
 import kotlin.test.Ignore
 
-private fun part1(input: List<String>): Int {
+private fun part1(input: List<String>) = input.sumOf { it.solvePart1() }
+private fun part2(input: List<String>) = input.sumOf { it.solveOneLinePart2() }
 
-    val solves = input.map { solvePart1(it) }
 
-    return solves.sum()
-}
-
-fun solvePart1(it: String): Int {
-    val input = it.split(" ")
+fun String.solvePart1(): Int {
+    val input = split(" ")
 
     val indicatorLightDiagram = parseIndicatorLightDiagram(input.first())
     val buttonWiringSchematics = input.drop(1).dropLast(1).map { parseButtonWiringSchematics(it) }
@@ -63,9 +63,34 @@ fun List<Int>.applyTo(lights: List<Boolean>): List<Boolean> {
     return mutableLights
 }
 
+private fun String.solveOneLinePart2(): Int {
+    val input = this.split(" ")
 
-private fun part2(input: List<String>): Int {
-    return 123
+    val indicatorLightDiagram = parseIndicatorLightDiagram(input.first())
+    val buttonWiringSchematics = input.drop(1).dropLast(1).map { parseButtonWiringSchematics(it) }
+    val joltageRequirements = parseJoltageRequirements(input.last())
+
+    val ctx = Context()
+    val opt = ctx.mkOptimize()
+    val vars = buttonWiringSchematics.indices.map { ctx.mkIntConst("b$it") }
+    vars.forEach { opt.Add(ctx.mkGe(it, ctx.mkInt(0))) }
+
+    joltageRequirements.withIndex().forEach { (i, joltages) ->
+        val terms = buttonWiringSchematics.withIndex().filter { i in it.value }.map { vars[it.index] }
+        if (terms.isNotEmpty()) {
+            val sum = if (terms.size == 1) terms[0]
+            else ctx.mkAdd(*terms.toTypedArray<IntExpr>())
+            opt.Add(ctx.mkEq(sum, ctx.mkInt(joltages)))
+        } else if (joltages != 0) {
+            throw RuntimeException("arghghghgh")
+        }
+    }
+    opt.MkMinimize(ctx.mkAdd(*vars.toTypedArray<IntExpr>()))
+    return if (opt.Check() == Status.SATISFIABLE) {
+        vars.sumOf { opt.model.evaluate(it, false).toString().toInt() }
+    } else {
+        0
+    }
 }
 
 class Day10Test {
@@ -86,10 +111,9 @@ class Day10Test {
         part2(testInput) shouldBe -1
     }
 
-    @Ignore
     @Test
     fun `part 2 with real input`() {
-        part2(readInputFileToList("day10.txt")) shouldBe -1
+        part2(readInputFileToList("day10.txt")) shouldBe 19763
     }
 
     @Test

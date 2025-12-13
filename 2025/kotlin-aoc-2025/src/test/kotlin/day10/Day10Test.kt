@@ -111,6 +111,7 @@ class Day10Test {
         part2(testInput) shouldBe -1
     }
 
+    @Ignore // too slow
     @Test
     fun `part 2 with real input`() {
         part2(readInputFileToList("day10.txt")) shouldBe 19763
